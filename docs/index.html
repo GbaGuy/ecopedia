@@ -55,8 +55,119 @@
 
     <footer>
         <p>&copy; 2025 Ecopedia | Powered by GitHub Pages</p>
+        <button id="adminBtn" class="admin-btn" title="Admin Panel">⚙️</button>
     </footer>
 
-    <script src="js/script.js"></script>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h2>🔧 Ecopedia Admin Panel</h2>
+                <button class="admin-close">&times;</button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="items">Add/Edit Items</button>
+                <button class="tab-btn" data-tab="categories">Add Categories</button>
+                <button class="tab-btn" data-tab="export">Export JSON</button>
+            </div>
+
+            <!-- Items Tab -->
+            <div id="items" class="tab-content active">
+                <h3>Add New Item</h3>
+                <form id="addItemForm">
+                    <div class="form-group">
+                        <label>Item Name *</label>
+                        <input type="text" id="itemName" required placeholder="e.g., Blue Dragon">
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="itemCategory" required>
+                            <option value="">Select category...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL (img/category/filename.jpg) *</label>
+                        <input type="text" id="itemImage" required placeholder="img/creatures/blue-dragon.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>Rarity *</label>
+                        <select id="itemRarity" required>
+                            <option value="">Select rarity...</option>
+                            <option value="Common">Common</option>
+                            <option value="Uncommon">Uncommon</option>
+                            <option value="Rare">Rare</option>
+                            <option value="Epic">Epic</option>
+                            <option value="Legendary">Legendary</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Short Description *</label>
+                        <input type="text" id="itemDescription" required placeholder="One sentence description">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Details *</label>
+                        <textarea id="itemDetails" required placeholder="Longer description..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Traits (comma-separated)</label>
+                        <input type="text" id="itemTraits" placeholder="e.g., Flying, Fire Breath, Fast">
+                    </div>
+                    <div class="form-group">
+                        <label>Habitat *</label>
+                        <input type="text" id="itemHabitat" required placeholder="Where it lives">
+                    </div>
+                    <button type="submit" class="btn-primary">Add Item</button>
+                </form>
+
+                <h3 style="margin-top: 2rem;">Existing Items</h3>
+                <div id="itemsList" class="items-list"></div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div id="categories" class="tab-content">
+                <h3>Add New Category</h3>
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label>Category Name *</label>
+                        <input type="text" id="categoryName" required placeholder="e.g., Magic Items">
+                    </div>
+                    <div class="form-group">
+                        <label>Category ID (lowercase, no spaces) *</label>
+                        <input type="text" id="categoryId" required placeholder="e.g., magic-items">
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <input type="text" id="categoryDescription" required placeholder="Brief description">
+                    </div>
+                    <div class="form-group">
+                        <label>Icon/Emoji *</label>
+                        <input type="text" id="categoryIcon" required placeholder="✨" maxlength="2">
+                    </div>
+                    <button type="submit" class="btn-primary">Add Category</button>
+                </form>
+
+                <h3 style="margin-top: 2rem;">Existing Categories</h3>
+                <div id="categoriesList" class="categories-list"></div>
+            </div>
+
+            <!-- Export Tab -->
+            <div id="export" class="tab-content">
+                <h3>Export Updated JSON</h3>
+                <p>Copy this JSON and replace the contents of <code>docs/data/content.json</code> on GitHub:</p>
+                <textarea id="jsonExport" readonly style="width: 100%; height: 400px; padding: 1rem; background: var(--bg-secondary); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace; font-size: 0.85rem;"></textarea>
+                <button id="copyJsonBtn" class="btn-primary" style="margin-top: 1rem;">Copy to Clipboard</button>
+                <p style="font-size: 0.85rem; color: var(--text-dark); margin-top: 1rem;">
+                    After copying:<br>
+                    1. Go to GitHub repository<br>
+                    2. Edit <code>docs/data/content.json</code><br>
+                    3. Paste the JSON<br>
+                    4. Commit changes
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
 </body>
 </html>
