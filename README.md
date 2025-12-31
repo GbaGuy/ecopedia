@@ -10,7 +10,10 @@ A GitHub Pages-hosted wiki/fandom-style site for Ecopedia with easy content mana
 - 🖼️ Image gallery with modal detail view
 - ⚡ No server required (pure static site)
 - 🎯 Auto-deploys via GitHub Pages
-- 📝 Single JSON file for all content management
+- 📝 Admin panel for adding/editing content
+- 📊 Google Sheets integration for team collaboration
+- 📤 Export and backup as JSON
+- 🔗 Share links for collaborative editing
 - 🎨 Customizable colors via CSS variables
 
 ## 📁 Project Structure
@@ -74,15 +77,25 @@ git push origin main
 
 GitHub Pages will automatically deploy your changes within 5 minutes.
 
-## ✏️ Adding Content (No Coding Required!)
+## ✏️ Adding Content
 
-All content is managed through **one file**: `docs/data/content.json`
+### Admin Panel (Recommended)
+
+1. Open your Ecopedia site
+2. Click the **⚙️ Admin** button (bottom right)
+3. Use the **Items** or **Categories** tabs to add content
+4. Click **Save to Firebase** to store in the cloud
+5. Or **Download JSON** for a backup
+
+### Manual Edit Method
+
+All content is managed through: `docs/data/content.json`
 
 ### Quick Add Process:
 
 1. **Add your image** to `docs/img/[category]/`
 2. **Edit** `docs/data/content.json` and add your item
-3. **Push to GitHub**
+3. **Push to GitHub** or **use the admin panel**
 
 See [QUICK_ADD_GUIDE.md](QUICK_ADD_GUIDE.md) for a quick reference or [CUSTOMIZATION_GUIDE.md](CUSTOMIZATION_GUIDE.md) for detailed instructions.
 
@@ -149,6 +162,7 @@ Validate your JSON at: https://jsonlint.com/
 
 ## 📚 Documentation
 
+- [GOOGLE_SHEETS_SETUP.md](GOOGLE_SHEETS_SETUP.md) - Easy team collaboration setup (recommended!)
 - [CUSTOMIZATION_GUIDE.md](CUSTOMIZATION_GUIDE.md) - Detailed guide for managing content
 - [QUICK_ADD_GUIDE.md](QUICK_ADD_GUIDE.md) - Quick reference for adding items
 - [ECOPEDIA_BUILD_INSTRUCTIONS.md](ECOPEDIA_BUILD_INSTRUCTIONS.md) - Complete build instructions

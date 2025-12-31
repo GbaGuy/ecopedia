@@ -1,12 +1,10 @@
 // Admin Panel functionality
 let adminData = { categories: [], items: [] };
-let githubConfig = {
-    token: null,
-    username: null,
-    repo: null
+let googleSheetsConfig = {
+    sheetId: null,
+    sheetName: 'Items'
 };
 let isShareMode = false;
-let sharedData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Check if this is a share link
@@ -26,8 +24,8 @@ function initializeAdmin() {
     const adminClose = document.querySelector('.admin-close');
     const tabBtns = document.querySelectorAll('.tab-btn');
 
-    // Load GitHub config from localStorage
-    loadGithubConfig();
+    // Load Google Sheets config from localStorage
+    loadGoogleSheetsConfig();
 
     // Load data from content.json
     loadAdminData();
@@ -41,10 +39,10 @@ function initializeAdmin() {
         adminPanel.classList.remove('active');
     });
 
-    // GitHub setup
-    document.getElementById('saveGithubSetup').addEventListener('click', saveGithubConfig);
-    document.getElementById('clearGithubSetup').addEventListener('click', clearGithubConfig);
-    document.getElementById('generateShareLink').addEventListener('click', generateShareLink);
+    // Google Sheets setup
+    document.getElementById('saveGoogleSheetsSetup')?.addEventListener('click', saveGoogleSheetsConfig);
+    document.getElementById('clearGoogleSheetsSetup')?.addEventListener('click', clearGoogleSheetsConfig);
+    document.getElementById('generateShareLink')?.addEventListener('click', generateShareLink);
     document.getElementById('copyShareLink')?.addEventListener('click', copyShareLink);
 
     // Tab switching
@@ -59,7 +57,8 @@ function initializeAdmin() {
     document.getElementById('addItemForm').addEventListener('submit', addNewItem);
     document.getElementById('addCategoryForm').addEventListener('submit', addNewCategory);
     document.getElementById('copyJsonBtn').addEventListener('click', copyJsonToClipboard);
-    document.getElementById('saveToGithub').addEventListener('click', saveToGithub);
+    document.getElementById('syncFromSheet')?.addEventListener('click', syncFromGoogleSheet);
+    document.getElementById('downloadJson')?.addEventListener('click', downloadJsonFile);
 
     // Close panel when clicking outside
     adminPanel.addEventListener('click', (e) => {
@@ -485,21 +484,177 @@ function loadSharedData(shareId) {
         `;
         banner.innerHTML = `
             🔗 <strong>SHARE MODE:</strong> You're editing in shared mode. 
-            Changes won't be saved unless the original owner clicks "Save to GitHub".
+            Changes won't be saved unless the original owner clicks "Save to Firebase".
             <button onclick="this.parentElement.style.display='none'" style="float: right; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">×</button>
         `;
         document.body.insertBefore(banner, document.body.firstChild);
         
-        // Disable GitHub save button in share mode
-        const saveBtn = document.getElementById('saveToGithub');
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.title = 'Not available in share mode';
-            saveBtn.style.opacity = '0.5';
+        // Disable Google Sheets sync button in share mode
+        const syncBtn = document.getElementById('syncFromSheet');
+        if (syncBtn) {
+            syncBtn.disabled = true;
+            syncBtn.title = 'Not available in share mode';
+            syncBtn.style.opacity = '0.5';
         }
         
     } catch (error) {
         alert('❌ Error loading shared data: ' + error.message);
         window.location.href = window.location.pathname;
+    }
+}
+
+// Google Sheets Configuration Management
+function loadGoogleSheetsConfig() {
+    const stored = localStorage.getItem('googleSheetsConfig');
+    if (stored) {
+        try {
+            const config = JSON.parse(stored);
+            googleSheetsConfig = config;
+            document.getElementById('googleSheetId').value = config.sheetId || '';
+            document.getElementById('googleSheetName').value = config.sheetName || 'Items';
+        } catch (e) {
+            console.error('Error loading Google Sheets config:', e);
+        }
+    }
+}
+
+function saveGoogleSheetsConfig() {
+    const sheetId = document.getElementById('googleSheetId').value.trim();
+    const sheetName = document.getElementById('googleSheetName').value.trim();
+
+    if (!sheetId || !sheetName) {
+        showStatus('googleSheetsStatus', '❌ Please fill in all fields', 'error');
+        return;
+    }
+
+    googleSheetsConfig = { sheetId, sheetName };
+    localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
+    showStatus('googleSheetsStatus', '✅ Google Sheets settings saved!', 'success');
+}
+
+function clearGoogleSheetsConfig() {
+    if (confirm('Clear Google Sheets settings?')) {
+        googleSheetsConfig = { sheetId: null, sheetName: 'Items' };
+        localStorage.removeItem('googleSheetsConfig');
+        document.getElementById('googleSheetId').value = '';
+        document.getElementById('googleSheetName').value = 'Items';
+        showStatus('googleSheetsStatus', '✅ Google Sheets settings cleared', 'success');
+    }
+}
+
+// Google Sheets Data Sync
+async function syncFromGoogleSheet() {
+    if (!googleSheetsConfig.sheetId) {
+        alert('⚠️ Please configure Google Sheets first (click the Google Sheets tab)');
+        return;
+    }
+
+    try {
+        showStatus('googleSheetsStatus', '⏳ Syncing from Google Sheet...', 'info');
+
+        // Use Google Sheets CSV export endpoint for simple data retrieval
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${googleSheetsConfig.sheetId}/export?format=csv&gid=0`;
+        
+        const response = await fetch(csvUrl);
+        if (!response.ok) {
+            throw new Error('Could not fetch Google Sheet. Make sure it\'s shared publicly.');
+        }
+
+        const csvText = await response.text();
+        const items = parseCSVToItems(csvText);
+        
+        if (items.length > 0) {
+            adminData.items = items;
+            showStatus('googleSheetsStatus', `✅ Synced ${items.length} items from Google Sheet!`, 'success');
+            updateJsonExport();
+        } else {
+            showStatus('googleSheetsStatus', '⚠️ No items found in Google Sheet', 'error');
+        }
+
+    } catch (error) {
+        console.error('Google Sheets sync error:', error);
+        showStatus('googleSheetsStatus', `❌ Sync failed: ${error.message}`, 'error');
+    }
+}
+
+function parseCSVToItems(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) return [];
+
+    // Parse header
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const items = [];
+
+    // Parse rows
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length > 0 && values[0].trim()) {
+            const item = {
+                id: `item-${Date.now()}-${i}`,
+                name: values[getHeaderIndex(headers, 'name')] || '',
+                category: values[getHeaderIndex(headers, 'category')] || 'creatures',
+                image: values[getHeaderIndex(headers, 'image')] || 'img/default.jpg',
+                rarity: values[getHeaderIndex(headers, 'rarity')] || 'Common',
+                description: values[getHeaderIndex(headers, 'description')] || '',
+                details: values[getHeaderIndex(headers, 'details')] || '',
+                traits: (values[getHeaderIndex(headers, 'traits')] || '').split(';').map(t => t.trim()).filter(t => t),
+                habitat: values[getHeaderIndex(headers, 'habitat')] || ''
+            };
+            if (item.name) items.push(item);
+        }
+    }
+
+    return items;
+}
+
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
+
+function getHeaderIndex(headers, name) {
+    const index = headers.indexOf(name.toLowerCase());
+    return index >= 0 ? index : 0;
+}
+
+function downloadJsonFile() {
+    const jsonStr = JSON.stringify(adminData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ecopedia-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function showStatus(elementId, message, type) {
+    const statusEl = document.getElementById(elementId);
+    if (statusEl) {
+        statusEl.textContent = message;
+        statusEl.className = `status ${type}`;
+        if (type !== 'info') {
+            setTimeout(() => {
+                statusEl.textContent = '';
+                statusEl.className = 'status';
+            }, 4000);
+        }
     }
 }

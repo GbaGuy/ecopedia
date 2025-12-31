@@ -509,25 +509,32 @@ footer p {
     font-size: 0.8rem;
 }
 
-#setupStatus, #saveStatus {
+#setupStatus, #saveStatus, #googleSheetsStatus {
     margin-top: 1rem;
     padding: 1rem;
     border-radius: 6px;
     display: none;
 }
 
-#setupStatus.success, #saveStatus.success {
+#setupStatus.success, #saveStatus.success, #googleSheetsStatus.success {
     display: block;
     background: rgba(76, 175, 80, 0.2);
     border: 1px solid #4caf50;
     color: #81c784;
 }
 
-#setupStatus.error, #saveStatus.error {
+#setupStatus.error, #saveStatus.error, #googleSheetsStatus.error {
     display: block;
     background: rgba(211, 47, 47, 0.2);
     border: 1px solid #d32f2f;
     color: #ef5350;
+}
+
+#googleSheetsStatus.info {
+    display: block;
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196f3;
+    color: #64b5f6;
 }
 
 .btn-secondary {
