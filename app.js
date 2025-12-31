@@ -294,9 +294,9 @@ function renderArticleContent(fields, fieldNames = null) {
     let html = '';
     const fNames = fieldNames || Object.keys(fields);
     
-    // Skip first two fields (category and title), start from third
+    // Skip ONLY the first field (category), show everything else
     fNames.forEach((fieldName, index) => {
-        if (index < 2) return; // Skip category and title fields
+        if (index < 1) return; // Skip ONLY the category field (index 0)
 
         const fieldValue = fields[fieldName];
 
