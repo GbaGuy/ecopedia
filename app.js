@@ -14,6 +14,8 @@ const CONFIG = {
 let appState = {
     tables: [],
     records: {},
+    categoriesTable: null, // Reference to the categories table
+    categoriesMappings: {}, // Maps table names to their categories
     currentView: 'categories', // categories, articles, article
     currentCategory: null,
     currentArticle: null,
@@ -71,9 +73,19 @@ async function fetchTablesAndRecords() {
         const data = await response.json();
         appState.tables = data.tables;
 
-        // Fetch records for each table
+        // Find and fetch the categories table first
+        appState.categoriesTable = appState.tables.find(t => t.name === 'קטגוריות');
+        if (appState.categoriesTable) {
+            await fetchTableRecords(appState.categoriesTable.id, appState.categoriesTable.name);
+            // Build the mappings from categories table
+            buildCategoryMappings();
+        }
+
+        // Fetch records for each table (except the categories table)
         for (const table of appState.tables) {
-            await fetchTableRecords(table.id, table.name);
+            if (table.name !== 'קטגוריות') {
+                await fetchTableRecords(table.id, table.name);
+            }
         }
         
         // Reorganize data by categories
@@ -84,6 +96,25 @@ async function fetchTablesAndRecords() {
     }
 }
 
+function buildCategoryMappings() {
+    // From the קטגוריות table, create a mapping of table names to categories
+    const categoryRecords = appState.records['קטגוריות'] || [];
+    
+    categoryRecords.forEach(record => {
+        const fields = record.fields;
+        const fieldNames = Object.keys(fields);
+        
+        // Get first field as table name, second as category
+        const tableName = fields[fieldNames[0]]; // שם טבלה
+        const category = fields[fieldNames[1]];   // קטגוריה שייכת ל
+        
+        if (tableName && category) {
+            appState.categoriesMappings[String(tableName).trim()] = String(category).trim();
+            console.log(`📋 Category Mapping: "${tableName}" → "${category}"`);
+        }
+    });
+}
+
 function organizeByCategories() {
     // Create a new structure: categories -> articles
     appState.categories = {};
@@ -91,18 +122,25 @@ function organizeByCategories() {
     
     // Iterate through all tables and records
     Object.entries(appState.records).forEach(([tableName, records]) => {
+        // Skip the categories table itself
+        if (tableName === 'קטגוריות') return;
+        
+        // Check if this table has a mapped category
+        const mappedCategory = appState.categoriesMappings[tableName];
+        
         records.forEach((record) => {
             const fields = record.fields;
             const fieldNames = Object.keys(fields);
             
-            // Get the first field value (should be the category)
-            const firstFieldName = fieldNames[0];
-            const categoryValue = fields[firstFieldName];
+            let category;
             
-            if (!categoryValue) return;
-            
-            // Category is the value of the first field
-            const category = String(categoryValue).trim();
+            if (mappedCategory) {
+                // This table is mapped to a specific category
+                category = mappedCategory;
+            } else {
+                // This table is its own category
+                category = tableName;
+            }
             
             // Initialize category if it doesn't exist
             if (!appState.categories[category]) {
@@ -122,8 +160,9 @@ function organizeByCategories() {
             appState.allArticles.push({ ...article, category });
             
             console.log('📄 Article:', {
+                tableName,
                 category,
-                title: fields[fieldNames[1]] || 'Untitled',
+                title: fields[fieldNames[0]] || 'Untitled',
                 fields: fieldNames
             });
         });
@@ -247,11 +286,12 @@ function createArticleItem(articleData, categoryName, index) {
     const fields = articleData.fields;
     const fieldNames = articleData.fieldNames || Object.keys(fields);
     
-    // Use second field as title (first is category)
-    const title = fields[fieldNames[1]] || fields[fieldNames[0]] || `Article ${index + 1}`;
+    // Use first field as title (for tables that are their own category)
+    // Or use first field as title for all cases
+    const title = fields[fieldNames[0]] || `Article ${index + 1}`;
     
-    // Use third field onwards as preview
-    const preview = fieldNames.slice(2)
+    // Use remaining fields as preview
+    const preview = fieldNames.slice(1)
         .map(name => fields[name])
         .filter(v => typeof v === 'string')
         .join(' | ')
@@ -277,9 +317,9 @@ function showArticle(record, fields, fieldNames = null) {
     document.getElementById('article-view').style.display = 'block';
 
     const fNames = fieldNames || Object.keys(fields);
-    // First field is category, second is title
-    const title = fields[fNames[1]] || fields[fNames[0]] || 'Untitled Article';
-    const category = fields[fNames[0]] || appState.currentCategory;
+    // First field is title
+    const title = fields[fNames[0]] || 'Untitled Article';
+    const category = appState.currentCategory;
     const content = renderArticleContent(fields, fNames);
 
     document.getElementById('article-title').textContent = escapeHtml(String(title));
@@ -294,10 +334,8 @@ function renderArticleContent(fields, fieldNames = null) {
     let html = '';
     const fNames = fieldNames || Object.keys(fields);
     
-    // Skip ONLY the first field (category), show everything else
+    // Show ALL fields, skip none (since first field is title, not category)
     fNames.forEach((fieldName, index) => {
-        if (index < 1) return; // Skip ONLY the category field (index 0)
-
         const fieldValue = fields[fieldName];
 
         if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
@@ -495,8 +533,8 @@ function displaySearchResults(query) {
 
         const fields = result.fields;
         const fieldNames = Object.keys(fields);
-        const title = fields[fieldNames[1]] || fields[fieldNames[0]] || 'Untitled';
-        const preview = fieldNames.slice(2)
+        const title = fields[fieldNames[0]] || 'Untitled';
+        const preview = fieldNames.slice(1)
             .map(name => fields[name])
             .find(v => typeof v === 'string') || 'No description';
 
