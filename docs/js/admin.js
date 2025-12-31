@@ -581,7 +581,7 @@ function parseCSVToItems(csvText) {
     const lines = csvText.trim().split('\n');
     if (lines.length < 2) return [];
 
-    // Parse header
+    // Parse header - expecting: Category, Description, Image
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
     const items = [];
 
@@ -589,18 +589,22 @@ function parseCSVToItems(csvText) {
     for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         if (values.length > 0 && values[0].trim()) {
+            const category = values[getHeaderIndex(headers, 'category')] || values[0] || 'other';
+            const description = values[getHeaderIndex(headers, 'description')] || values[1] || '';
+            const image = values[getHeaderIndex(headers, 'image')] || values[2] || 'img/default.jpg';
+            
             const item = {
                 id: `item-${Date.now()}-${i}`,
-                name: values[getHeaderIndex(headers, 'name')] || '',
-                category: values[getHeaderIndex(headers, 'category')] || 'creatures',
-                image: values[getHeaderIndex(headers, 'image')] || 'img/default.jpg',
-                rarity: values[getHeaderIndex(headers, 'rarity')] || 'Common',
-                description: values[getHeaderIndex(headers, 'description')] || '',
-                details: values[getHeaderIndex(headers, 'details')] || '',
-                traits: (values[getHeaderIndex(headers, 'traits')] || '').split(';').map(t => t.trim()).filter(t => t),
-                habitat: values[getHeaderIndex(headers, 'habitat')] || ''
+                name: description.substring(0, 50), // Use first part of description as name
+                category: category.toLowerCase(),
+                image: image,
+                rarity: 'Common',
+                description: description,
+                details: '',
+                traits: [],
+                habitat: ''
             };
-            if (item.name) items.push(item);
+            if (item.description) items.push(item);
         }
     }
 

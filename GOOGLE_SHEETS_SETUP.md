@@ -11,26 +11,23 @@ This is the simple way to manage your wiki data - directly in a Google Sheet tha
 
 ## Step 2: Set Up the Columns
 
-In your Google Sheet, create these columns in Row 1:
-- **A:** Name
-- **B:** Category
-- **C:** Image
-- **D:** Rarity
-- **E:** Description
-- **F:** Details
-- **G:** Traits
-- **H:** Habitat
+In your Google Sheet, create these 3 simple columns in Row 1:
+- **A: Category** - סוג הפריט (חפץ, תושב קבע, אחר, וכו')
+- **B: Description** - תיאור הפריט
+- **C: Image** - נתיב לתמונה
 
 ### Example Row (Row 2):
 ```
-Name              | Category  | Image                      | Rarity | Description        | Details            | Traits           | Habitat
-Verdant Dragon    | creatures | img/creatures/dragon.jpg  | Rare   | A green dragon     | Lives in forests  | Flying, Magic    | Forest
+Category     | Description                          | Image
+חפץ          | חרב זהב עתיקה מהמקדש                 | img/items/sword.jpg
+תושב קבע     | איש זקן שמוכר שיקויים               | img/npcs/old-man.jpg
+אחר          | מפה של האזור המסתורי                | img/other/map.jpg
 ```
 
 **Important:** 
-- **Traits** should be separated by semicolons (`;`) - e.g., `Flying; Magic; Dragon`
+- **Category** can be anything you want (חפץ, תושב קבע, מקום, אחר, etc.)
+- **Description** is free text - describe the item
 - **Image** paths should start with `img/`
-- **Category** must match one of your categories (creatures, plants, locations, equipment, etc.)
 
 ## Step 3: Share Your Sheet
 
@@ -119,12 +116,14 @@ Google Sheet (shared with team)
 
 ### Categories
 
-Make sure your item's **Category** matches one of your categories:
-- creatures
-- plants
-- locations
-- equipment
-- (or any custom categories you created)
+Your **Category** can be anything:
+- חפץ (item)
+- תושב קבע (NPC)
+- מקום (location)
+- אחר (other)
+- Or any custom category you want!
+
+The wiki will automatically group items by category.
 
 ---
 
@@ -137,28 +136,29 @@ Make sure your item's **Category** matches one of your categories:
 
 ### Items not appearing
 - Check Sheet Name is correct (usually `Sheet1`)
-- Make sure **Name** column (A) has values
-- Verify **Category** matches an existing category
+- Make sure **Category** column (A) has values
+- Verify **Description** column (B) has values
 
 ### Images not showing
 - Image paths must start with `img/`
 - Check the path matches your actual image location
-- Example: `img/creatures/dragon.jpg`
+- Example: `img/items/sword.jpg`
 
 ### Missing columns
-- All columns should be: Name, Category, Image, Rarity, Description, Details, Traits, Habitat
-- Leave cells blank if you don't have data for them
+- You need exactly 3 columns: **Category, Description, Image**
+- Leave cells blank if you don't have an image
 - Row 1 should have headers
 
 ---
 
 ## Example Google Sheet
 
-| Name | Category | Image | Rarity | Description | Details | Traits | Habitat |
-|------|----------|-------|--------|-------------|---------|--------|---------|
-| Verdant Dragon | creatures | img/creatures/dragon.jpg | Rare | A majestic green dragon | Breathes fire and magic | Flying; Magical; Dragon | Mountains |
-| Crystal Fern | plants | img/plants/fern.jpg | Common | A shimmering fern | Glows at night | Glowing; Rare Herb | Forest Floor |
-| Ancient Library | locations | img/locations/library.jpg | Legendary | Secret knowledge store | Protected by guardians | Historic; Magic | Underground |
+| Category | Description | Image |
+|----------|-------------|-------|
+| חפץ | חרב זהב עתיקה מהמקדש הקדום | img/items/sword.jpg |
+| תושב קבע | איש זקן שמוכר שיקויים בכפר | img/npcs/old-man.jpg |
+| מקום | ספרייה עתיקה מלאה בידע | img/locations/library.jpg |
+| אחר | מפה של האזור המסתורי | img/other/map.jpg |
 
 ---
 
