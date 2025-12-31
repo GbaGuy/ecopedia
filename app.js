@@ -229,7 +229,9 @@ function renderCategoriesView() {
 
     // Show categories from the organized data
     Object.entries(appState.categories).forEach(([categoryName, articles]) => {
-        const card = createCategoryCard(categoryName, articles.length);
+        // Get unique table names in this category
+        const tableNames = [...new Set(articles.map(a => a.tableName))];
+        const card = createCategoryCard(categoryName, tableNames.length);
         categoriesGrid.appendChild(card);
     });
 
@@ -270,8 +272,18 @@ function showCategoryArticles(categoryName) {
         return;
     }
 
-    articles.forEach((articleData, index) => {
-        const item = createArticleItem(articleData, categoryName, index);
+    // Group articles by table name
+    const tableGroups = {};
+    articles.forEach(article => {
+        if (!tableGroups[article.tableName]) {
+            tableGroups[article.tableName] = [];
+        }
+        tableGroups[article.tableName].push(article);
+    });
+
+    // Create table items - each table is one page
+    Object.entries(tableGroups).forEach(([tableName, tableArticles]) => {
+        const item = createTableItem(tableName, tableArticles, categoryName);
         articlesList.appendChild(item);
     });
 
@@ -310,6 +322,26 @@ function createArticleItem(articleData, categoryName, index) {
     return item;
 }
 
+function createTableItem(tableName, tableArticles, categoryName) {
+    const item = document.createElement('a');
+    item.className = 'article-item';
+    item.href = '#';
+
+    const recordCount = tableArticles.length;
+    
+    item.innerHTML = `
+        <div class="article-item-title">${escapeHtml(tableName)}</div>
+        <div class="article-item-preview">${recordCount} record${recordCount !== 1 ? 's' : ''}</div>
+    `;
+
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        showTablePage(tableName, tableArticles, categoryName);
+    });
+
+    return item;
+}
+
 function showArticle(record, fields, fieldNames = null) {
     appState.currentView = 'article';
     appState.currentArticle = { record, fields, fieldNames };
@@ -328,6 +360,39 @@ function showArticle(record, fields, fieldNames = null) {
     document.getElementById('article-content').innerHTML = content;
 
     updateSidebarNav(appState.currentCategory);
+}
+
+function showTablePage(tableName, tableArticles, categoryName) {
+    appState.currentView = 'article';
+    appState.currentCategory = categoryName;
+    hideAllViews();
+    document.getElementById('article-view').style.display = 'block';
+
+    // Build content from all records in the table
+    let content = '';
+    tableArticles.forEach((articleData, index) => {
+        const fields = articleData.fields;
+        const fieldNames = articleData.fieldNames || Object.keys(fields);
+        
+        // Add record separator if not the first record
+        if (index > 0) {
+            content += '<hr style="margin: 2rem 0; border: none; border-top: 1px solid #ccc;">';
+        }
+        
+        // Get first field as record title
+        const recordTitle = fields[fieldNames[0]] || `Record ${index + 1}`;
+        content += `<h3 style="margin-top: 1.5rem; border-bottom: 2px solid #0066cc; padding-bottom: 0.5rem;">${escapeHtml(String(recordTitle))}</h3>`;
+        
+        // Add all fields
+        content += renderArticleContent(fields, fieldNames);
+    });
+
+    document.getElementById('article-title').textContent = escapeHtml(tableName);
+    document.getElementById('article-category').innerHTML = 
+        `<a href="#" onclick="showCategoryArticles('${escapeHtml(String(categoryName))}'); return false;">${escapeHtml(String(categoryName))}</a>`;
+    document.getElementById('article-content').innerHTML = content;
+
+    updateSidebarNav(categoryName);
 }
 
 function renderArticleContent(fields, fieldNames = null) {
