@@ -1,5 +1,15 @@
-// Configuration - Set your Google Sheet ID here!
+// Configuration
 const DEFAULT_SHEET_ID = '1j8_yIbgDcms0zs7Sa_fC7yuwkraV0rgG7IUtVGJ7vDY';
+
+// Define your tabs (sheets) - each tab is a category
+// Format: { name: 'Category Name', gid: '0' }
+// To find GID: Open the tab in Google Sheets, look at URL: #gid=XXXXXX
+const SHEET_TABS = [
+    { name: 'Main', gid: '0' },  // First sheet is always gid=0
+    // Add more tabs here:
+    // { name: 'Items', gid: '123456' },
+    // { name: 'NPCs', gid: '789012' },
+];
 
 // State
 let sheetId = localStorage.getItem('ecopediaSheetId') || DEFAULT_SHEET_ID;
@@ -132,19 +142,27 @@ async function loadData() {
     if (!sheetId) return;
     
     try {
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
-        const response = await fetch(csvUrl);
+        allItems = [];
+        categories = [];
         
-        if (!response.ok) {
-            throw new Error('Failed to load sheet. Make sure it\'s shared publicly.');
+        // Load each tab (category)
+        for (const tab of SHEET_TABS) {
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${tab.gid}`;
+            const response = await fetch(csvUrl);
+            
+            if (!response.ok) {
+                console.error(`Failed to load tab: ${tab.name}`);
+                continue;
+            }
+            
+            const csvText = await response.text();
+            parseTabData(csvText, tab.name);
         }
-        
-        const csvText = await response.text();
-        parseData(csvText);
         
         if (allItems.length === 0) {
             showNoData();
         } else {
+            categories = [...new Set(allItems.map(item => item.category))];
             renderCategories();
             renderItems();
             showMain();
@@ -156,42 +174,52 @@ async function loadData() {
     }
 }
 
-function parseData(csvText) {
+function parseTabData(csvText, categoryName) {
     const lines = csvText.trim().split('\n');
-    if (lines.length < 2) {
-        allItems = [];
-        return;
-    }
+    if (lines.length < 2) return;
     
-    allItems = [];
-    categories = [];
+    // Parse headers (first row)
+    const headers = parseCSVLine(lines[0]).map(h => h.trim());
     
-    // Skip header (line 0)
+    // Parse data rows
     for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         
-        if (values.length >= 2 && values[0].trim()) {
-            const category = values[0].trim();
-            const description = values[1].trim();
-            let image = values.length >= 3 ? values[2].trim() : 'img/default.jpg';
-            
-            // Convert Google Drive links to direct image URLs
-            image = convertGoogleDriveLink(image);
-            
+        if (values.length > 0 && values[0].trim()) {
             const item = {
-                id: `item-${i}`,
-                category: category,
-                description: description,
-                image: image,
-                title: description.substring(0, 60) + (description.length > 60 ? '...' : '')
+                id: `item-${categoryName}-${i}`,
+                category: categoryName,
+                fields: {}
             };
             
-            allItems.push(item);
+            // Map all columns dynamically
+            headers.forEach((header, index) => {
+                if (header && values[index]) {
+                    let value = values[index].trim();
+                    
+                    // Convert Google Drive links for image fields
+                    if (header.toLowerCase().includes('image') || 
+                        header.toLowerCase().includes('תמונה') ||
+                        header.toLowerCase().includes('pic')) {
+                        value = convertGoogleDriveLink(value);
+                    }
+                    
+                    item.fields[header] = value;
+                }
+            });
             
-            // Collect unique categories
-            if (!categories.includes(category)) {
-                categories.push(category);
-            }
+            // Set title (use first non-empty field or first field)
+            item.title = item.fields[headers[0]] || 'Untitled';
+            
+            // Find image field
+            const imageField = headers.find(h => 
+                h.toLowerCase().includes('image') || 
+                h.toLowerCase().includes('תמונה') ||
+                h.toLowerCase().includes('pic')
+            );
+            item.image = imageField ? item.fields[imageField] : 'img/default.jpg';
+            
+            allItems.push(item);
         }
     }
 }
@@ -269,12 +297,16 @@ function renderItems() {
         card.className = 'item-card';
         card.onclick = () => showItemDetail(item);
         
+        // Get first field value for preview
+        const firstField = Object.values(item.fields)[1] || Object.values(item.fields)[0] || '';
+        const preview = firstField.substring(0, 100) + (firstField.length > 100 ? '...' : '');
+        
         card.innerHTML = `
             <img src="${item.image}" alt="${item.title}" onerror="this.src='img/default.jpg'">
             <div class="item-card-content">
                 <div class="item-category">${item.category}</div>
                 <h3>${item.title}</h3>
-                <p>${item.description}</p>
+                <p>${preview}</p>
             </div>
         `;
         
@@ -284,9 +316,18 @@ function renderItems() {
 
 function showItemDetail(item) {
     document.getElementById('modalImage').src = item.image;
-    document.getElementById('modalTitle').textContent = item.description.substring(0, 100);
+    document.getElementById('modalTitle').textContent = item.title;
     document.getElementById('modalCategory').textContent = item.category;
-    document.getElementById('modalDescription').textContent = item.description;
+    
+    // Display all fields dynamically
+    let detailsHTML = '';
+    Object.entries(item.fields).forEach(([key, value]) => {
+        if (value) {
+            detailsHTML += `<p><strong>${key}:</strong> ${value}</p>`;
+        }
+    });
+    
+    document.getElementById('modalDescription').innerHTML = detailsHTML;
     document.getElementById('itemModal').classList.add('active');
 }
 
