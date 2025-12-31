@@ -15,70 +15,60 @@ async function init() {
 async function loadData() {
     allData = [];
     
-    try {
-        // קבלת כל הטאבים מהשיטס אוטומטית
-        const sheetsUrl = `https://spreadsheets.google.com/feeds/worksheets/${SHEET_ID}/public/full?alt=json`;
-        const sheetsResponse = await fetch(sheetsUrl);
-        const sheetsData = await sheetsResponse.json();
+    // קורא טאבים אוטומטית (מנסה GID 0-20)
+    for (let gid = 0; gid <= 20; gid++) {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
         
-        const tabs = sheetsData.feed.entry.map(entry => {
-            const title = entry.title.$t;
-            const link = entry.link.find(l => l.rel === 'http://schemas.google.com/visualization/2008/visualizationApi');
-            const gidMatch = link ? link.href.match(/gid=(\d+)/) : null;
-            const gid = gidMatch ? gidMatch[1] : '0';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) continue;
             
-            return { name: title, gid: gid };
-        });
-        
-        console.log('נמצאו טאבים:', tabs);
-        
-        // טעינת נתונים מכל טאב
-        for (const tab of tabs) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${tab.gid}`;
+            const csv = await response.text();
+            const rows = parseCSV(csv);
             
-            try {
-                const response = await fetch(url);
-                const csv = await response.text();
-                const rows = parseCSV(csv);
+            if (rows.length < 2) continue;
+            
+            const headers = rows[0];
+            
+            // שם הקטגוריה מהעמודה הראשונה או מספר הטאב
+            const categoryName = `קטגוריה ${gid + 1}`;
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row[0]) continue;
                 
-                if (rows.length < 2) continue;
+                const item = {
+                    category: categoryName,
+                    fields: {}
+                };
                 
-                const headers = rows[0];
-                
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (!row[0]) continue;
-                    
-                    const item = {
-                        category: tab.name,
-                        fields: {}
-                    };
-                    
-                    headers.forEach((header, index) => {
-                        if (header && row[index]) {
-                            let value = row[index];
-                            
-                            // המרת לינק גוגל דרייב לתמונה
-                            if (header.includes('תמונה') || header.includes('image')) {
-                                const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                                if (match) {
-                                    value = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-                                }
+                headers.forEach((header, index) => {
+                    if (header && row[index]) {
+                        let value = row[index];
+                        
+                        // המרת לינק גוגל דרייב לתמונה
+                        if (header.includes('תמונה') || header.includes('image')) {
+                            const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                            if (match) {
+                                value = `https://drive.google.com/uc?export=view&id=${match[1]}`;
                             }
-                            
-                            item.fields[header] = value;
                         }
-                    });
-                    
-                    allData.push(item);
-                }
-            } catch (error) {
-                console.error(`שגיאה בטעינת ${tab.name}:`, error);
+                        
+                        item.fields[header] = value;
+                    }
+                });
+                
+                allData.push(item);
             }
+            
+            console.log(`נטען טאב GID ${gid} - ${categoryName}`);
+        } catch (error) {
+            // סיימנו את כל הטאבים הקיימים
+            continue;
         }
-    } catch (error) {
-        console.error('שגיאה בטעינת הטאבים:', error);
     }
+    
+    console.log(`סה"כ נטענו ${allData.length} פריטים`);
 }
 
 function parseCSV(text) {
