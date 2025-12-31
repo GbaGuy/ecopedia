@@ -7,101 +7,15 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Header -->
     <header>
-        <div class="container">
-            <h1>🌿 Ecopedia</h1>
-            <p>Wiki powered by Google Sheets</p>
-        </div>
+        <h1>🌿 Ecopedia</h1>
     </header>
 
-    <!-- Setup Section -->
-    <div id="setupSection" class="setup-section">
-        <div class="container">
-            <div class="setup-card">
-                <h2>📊 Setup Google Sheets</h2>
-                <p>Connect your Google Sheet to display your wiki:</p>
-                
-                <ol style="text-align: right; margin: 1.5rem 0;">
-                    <li>Create a <a href="https://sheets.google.com" target="_blank">Google Sheet</a></li>
-                    <li><strong>Each tab = one category</strong> (rename tabs as you want)</li>
-                    <li>In each tab: Row 1 = column names, Row 2+ = data</li>
-                    <li>Add as many columns as you want!</li>
-                    <li>Upload images to <a href="https://drive.google.com" target="_blank">Google Drive</a></li>
-                    <li>Share images and sheet: "Anyone with link can view"</li>
-                    <li>Get tab GIDs from URL (#gid=123456)</li>
-                    <li>Configure in js/script.js</li>
-                </ol>
-
-                <div class="form-group">
-                    <label>Google Sheet ID</label>
-                    <input type="text" id="sheetIdInput" placeholder="1BxiMVs0XRA5nFMoons...">
-                    <small>From URL: docs.google.com/spreadsheets/d/<strong>THIS_PART</strong>/edit</small>
-                </div>
-
-                <button id="saveSheetId" class="btn-primary">💾 Save & Load Data</button>
-                <div id="setupStatus"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <main id="mainContent" style="display: none;">
-        <div class="container">
-            <!-- Categories Filter -->
-            <div id="categoriesFilter" class="categories-filter"></div>
-
-            <!-- Items Grid -->
-            <div id="itemsGrid" class="items-grid"></div>
-
-            <!-- No Data -->
-            <div id="noDataMessage" style="display: none; text-align: center; padding: 3rem;">
-                <h2>📭 No data found</h2>
-                <p>Make sure your Google Sheet has data and is shared publicly.</p>
-                <button id="reloadData" class="btn-primary">🔄 Reload</button>
-            </div>
-        </div>
+    <main>
+        <div id="categories" class="categories"></div>
+        <div id="items" class="items"></div>
     </main>
 
-    <!-- Item Modal -->
-    <div id="itemModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <img id="modalImage" src="" alt="">
-            <h2 id="modalTitle"></h2>
-            <div class="modal-category" id="modalCategory"></div>
-            <p id="modalDescription"></p>
-        </div>
-    </div>
-
-    <!-- Settings Button -->
-    <button id="settingsBtn" class="settings-btn">⚙️</button>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h2>⚙️ Settings</h2>
-            
-            <div class="form-group">
-                <label>Google Sheet ID</label>
-                <input type="text" id="settingsSheetId" placeholder="1BxiMVs0XRA5nFMoons...">
-            </div>
-
-            <button id="updateSheetId" class="btn-primary">💾 Update & Reload</button>
-            <button id="clearSheetId" class="btn-danger">🗑️ Clear</button>
-            <div id="settingsStatus"></div>
-        </div>
-    </div>
-
     <script src="js/script.js"></script>
-    
-    <!-- 
-    SETUP INSTRUCTIONS:
-    1. Open js/script.js
-    2. Find the line: const DEFAULT_SHEET_ID = 'YOUR_SHEET_ID_HERE';
-    3. Replace 'YOUR_SHEET_ID_HERE' with your actual Google Sheet ID
-    4. Save and deploy - your wiki is ready!
-    -->
 </body>
 </html>
