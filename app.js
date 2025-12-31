@@ -256,15 +256,24 @@ function renderArticleContent(fields) {
             html += `<p>${processedText}</p>`;
         } else if (Array.isArray(fieldValue)) {
             // Check if this is an attachments array (images)
-            if (fieldValue.length > 0 && fieldValue[0].url && fieldValue[0].filename) {
-                // This is an attachments field - display images
+            if (fieldValue.length > 0 && fieldValue[0].url) {
+                // This is an attachments field
                 fieldValue.forEach(attachment => {
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(attachment.filename);
+                    if (!attachment.url) return;
+                    
+                    const filename = attachment.filename || '';
+                    // Better detection for images
+                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename) || 
+                                   (attachment.type && attachment.type.includes('image'));
+                    
                     if (isImage) {
-                        html += `<img src="${attachment.url}" alt="${escapeHtml(attachment.filename)}" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 4px;">`;
-                    } else {
+                        html += `<figure style="margin: 1rem 0;">
+                                   <img src="${attachment.url}" alt="${escapeHtml(filename)}" style="max-width: 100%; height: auto; border-radius: 4px; display: block;">
+                                   ${filename ? `<figcaption style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">${escapeHtml(filename)}</figcaption>` : ''}
+                                 </figure>`;
+                    } else if (filename) {
                         // For non-image files, show as link
-                        html += `<p><a href="${attachment.url}" target="_blank" class="wiki-link">📎 ${escapeHtml(attachment.filename)}</a></p>`;
+                        html += `<p><a href="${attachment.url}" target="_blank" class="wiki-link">📎 ${escapeHtml(filename)}</a></p>`;
                     }
                 });
             } else {
