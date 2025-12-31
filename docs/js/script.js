@@ -168,7 +168,10 @@ function parseData(csvText) {
         if (values.length >= 2 && values[0].trim()) {
             const category = values[0].trim();
             const description = values[1].trim();
-            const image = values.length >= 3 ? values[2].trim() : 'img/default.jpg';
+            let image = values.length >= 3 ? values[2].trim() : 'img/default.jpg';
+            
+            // Convert Google Drive links to direct image URLs
+            image = convertGoogleDriveLink(image);
             
             const item = {
                 id: `item-${i}`,
@@ -287,4 +290,36 @@ function showNoData() {
     document.getElementById('itemsGrid').style.display = 'none';
     document.getElementById('categoriesFilter').style.display = 'none';
     showMain();
+}
+
+// Convert Google Drive share links to direct image URLs
+function convertGoogleDriveLink(url) {
+    if (!url) return 'img/default.jpg';
+    
+    // If already a direct URL, return as is
+    if (url.startsWith('http') && !url.includes('drive.google.com')) {
+        return url;
+    }
+    
+    // Convert Google Drive sharing link to direct image
+    // From: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    // To: https://drive.google.com/uc?export=view&id=FILE_ID
+    
+    let fileId = null;
+    
+    // Try to extract file ID from various Google Drive URL formats
+    if (url.includes('drive.google.com/file/d/')) {
+        fileId = url.split('/d/')[1].split('/')[0];
+    } else if (url.includes('id=')) {
+        fileId = url.split('id=')[1].split('&')[0];
+    } else if (url.includes('drive.google.com') && url.includes('/open?id=')) {
+        fileId = url.split('open?id=')[1].split('&')[0];
+    }
+    
+    if (fileId) {
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    
+    // If not a Google Drive link, return as is (local path or other URL)
+    return url;
 }

@@ -9,31 +9,41 @@ This is the simple way to manage your wiki data - directly in a Google Sheet tha
 3. Name it: `Ecopedia Items` (or whatever you like)
 4. You now have a blank sheet!
 
-## Step 2: Set Up the Columns
+## Step 2: Upload Images to Google Drive
+
+1. Go to [Google Drive](https://drive.google.com)
+2. Create a folder called `Ecopedia Images` (optional)
+3. Upload your images (JPG, PNG, etc.)
+4. **For each image:**
+   - Right-click → **Share**
+   - Change to: **"Anyone with the link can view"**
+   - Click **Copy link**
+   - Save this link!
+
+### Example Image Link:
+```
+https://drive.google.com/file/d/1ABC123def456GHI789jkl/view?usp=sharing
+```
+
+## Step 3: Set Up the Columns
 
 In your Google Sheet, create these 3 simple columns in Row 1:
 - **A: Category** - סוג הפריט (חפץ, תושב קבע, אחר, וכו')
 - **B: Description** - תיאור הפריט
-- **C: Image** - נתיב לתמונה
+- **C: Image** - קישור לתמונה מ-Google Drive
 
-### Example Row (Row 2):
+### Example Rows:
 ```
 Category     | Description                          | Image
-חפץ          | חרב זהב עתיקה מהמקדש                 | img/items/sword.jpg
-תושב קבע     | איש זקן שמוכר שיקויים               | img/npcs/old-man.jpg
-אחר          | מפה של האזור המסתורי                | img/other/map.jpg
+חפץ          | חרב זהב עתיקה מהמקדש                 | https://drive.google.com/file/d/1ABC123.../view
+תושב קבע     | איש זקן שמוכר שיקויים               | https://drive.google.com/file/d/1XYZ789.../view
+אחר          | מפה של האזור המסתורי                | https://drive.google.com/file/d/1DEF456.../view
 ```
 
 **Important:** 
 - **Category** can be anything you want (חפץ, תושב קבע, מקום, אחר, etc.)
 - **Description** is free text - describe the item
-- **Image** paths should start with `img/`
-
-## Step 3: Share Your Sheet
-
-1. Click **Share** (top right)
-2. Set to **"Anyone with the link can edit"**
-3. Copy the link - it contains your Sheet ID in the URL
+- **Image** should be the full Google Drive sharing link
 
 ## Step 4: Get Your Sheet ID
 
@@ -48,7 +58,13 @@ The Sheet ID is the long string of letters and numbers between `/d/` and `/edit`
 
 **Example ID:** `1BxiMVs0XRA5nFMoons8J2AbCdEfGhIjKlMnOpQrS`
 
-## Step 5: Enter Settings in Ecopedia
+## Step 5: Share Your Google Sheet
+
+1. In your Google Sheet, click **Share** (top right)
+2. Set to **"Anyone with the link can view"** (not edit!)
+3. Click **Done**
+
+## Step 6: Enter Settings in Ecopedia
 
 1. Open your Ecopedia site
 2. Click **⚙️ Admin** button
@@ -140,9 +156,10 @@ The wiki will automatically group items by category.
 - Verify **Description** column (B) has values
 
 ### Images not showing
-- Image paths must start with `img/`
-- Check the path matches your actual image location
-- Example: `img/items/sword.jpg`
+- Make sure images are shared: "Anyone with link can view"
+- Copy the full Google Drive link including the file ID
+- The wiki automatically converts Google Drive links to direct images
+- Example: `https://drive.google.com/file/d/1ABC123.../view`
 
 ### Missing columns
 - You need exactly 3 columns: **Category, Description, Image**
@@ -155,10 +172,12 @@ The wiki will automatically group items by category.
 
 | Category | Description | Image |
 |----------|-------------|-------|
-| חפץ | חרב זהב עתיקה מהמקדש הקדום | img/items/sword.jpg |
-| תושב קבע | איש זקן שמוכר שיקויים בכפר | img/npcs/old-man.jpg |
-| מקום | ספרייה עתיקה מלאה בידע | img/locations/library.jpg |
-| אחר | מפה של האזור המסתורי | img/other/map.jpg |
+| חפץ | חרב זהב עתיקה מהמקדש הקדום | https://drive.google.com/file/d/1ABC123.../view |
+| תושב קבע | איש זקן שמוכר שיקויים בכפר | https://drive.google.com/file/d/1XYZ789.../view |
+| מקום | ספרייה עתיקה מלאה בידע | https://drive.google.com/file/d/1DEF456.../view |
+| אחר | מפה של האזור המסתורי | https://drive.google.com/file/d/1GHI012.../view |
+
+**Note:** All images are uploaded to Google Drive and shared with "Anyone with link can view"
 
 ---
 
