@@ -255,41 +255,54 @@ function renderArticleContent(fields) {
                 .replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
             html += `<p>${processedText}</p>`;
         } else if (Array.isArray(fieldValue)) {
-            // Check if this is an attachments array (images)
-            if (fieldValue.length > 0 && fieldValue[0].url) {
-                // This is an attachments field
-                const isImageField = fieldName.toLowerCase().includes('תמונה') || 
-                                   fieldName.toLowerCase().includes('image') ||
-                                   fieldName.toLowerCase().includes('תמונ');
+            // Check if this is an attachments array
+            if (fieldValue.length > 0 && typeof fieldValue[0] === 'object' && fieldValue[0].url) {
+                // This is definitely an attachments field
+                let hasImages = false;
+                let imagesHtml = '';
+                let otherHtml = '';
                 
                 fieldValue.forEach(attachment => {
                     if (!attachment.url) return;
                     
                     const filename = attachment.filename || '';
-                    // Better detection for images
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename) || 
-                                   (attachment.type && attachment.type.includes('image')) ||
-                                   isImageField;
+                    const url = attachment.url;
                     
-                    console.log('Attachment:', { filename, isImage, fieldName, type: attachment.type });
+                    // Check if it's an image - multiple ways
+                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(filename) ||
+                                   (attachment.type && attachment.type.toLowerCase().includes('image')) ||
+                                   url.includes('.png') || 
+                                   url.includes('.jpg') || 
+                                   url.includes('.jpeg') ||
+                                   url.includes('.gif') ||
+                                   url.includes('/image');
+                    
+                    console.log('📎 Attachment:', { 
+                        filename, 
+                        isImage, 
+                        type: attachment.type,
+                        urlContains: url.substring(url.length - 50)
+                    });
                     
                     if (isImage) {
-                        html += `<figure style="margin: 1rem 0;">
-                                   <img src="${attachment.url}" alt="${escapeHtml(filename)}" style="max-width: 100%; height: auto; border-radius: 4px; display: block;">
-                                   ${filename ? `<figcaption style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">${escapeHtml(filename)}</figcaption>` : ''}
-                                 </figure>`;
-                    } else if (filename) {
-                        // For non-image files, show as link
-                        html += `<p><a href="${attachment.url}" target="_blank" class="wiki-link">📎 ${escapeHtml(filename)}</a></p>`;
+                        hasImages = true;
+                        imagesHtml += `<figure style="margin: 1rem 0; text-align: center;">
+                                        <img src="${url}" alt="${escapeHtml(filename)}" style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                        ${filename ? `<figcaption style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">${escapeHtml(filename)}</figcaption>` : ''}
+                                      </figure>`;
+                    } else {
+                        otherHtml += `<p><a href="${url}" target="_blank" class="wiki-link" download>📎 ${escapeHtml(filename || 'Download file')}</a></p>`;
                     }
                 });
+                
+                html += imagesHtml + otherHtml;
             } else {
                 // Regular array - show as list
                 html += '<ul>';
                 fieldValue.forEach(item => {
                     if (typeof item === 'string') {
                         html += `<li>${escapeHtml(item)}</li>`;
-                    } else if (item.url) {
+                    } else if (typeof item === 'object' && item.url) {
                         html += `<li><a href="${item.url}" target="_blank">${escapeHtml(item.filename || 'File')}</a></li>`;
                     }
                 });
