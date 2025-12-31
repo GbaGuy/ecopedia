@@ -5,9 +5,9 @@
 // Configuration - UPDATE THESE WITH YOUR VALUES
 const CONFIG = {
     // Get your Airtable Personal Access Token from https://airtable.com/account/api
-    AIRTABLE_TOKEN: 'YOUR_AIRTABLE_TOKEN_HERE',
+    AIRTABLE_TOKEN: 'patbBdVmYmUenU3tn.2a45dd438b0539b40bf6fa9366968dc79e3ed752950f04f5d58cefb92c8aad42',
     // Get your Base ID from your Airtable workspace
-    BASE_ID: 'YOUR_BASE_ID_HERE'
+    BASE_ID: 'appFhnPRMRFzdcbds'
 };
 
 // Application State
