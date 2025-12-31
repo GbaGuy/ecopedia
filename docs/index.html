@@ -92,6 +92,18 @@
                 <button id="saveGithubSetup" class="btn-primary">Save GitHub Settings</button>
                 <button id="clearGithubSetup" class="btn-secondary">Clear Settings</button>
                 <div id="setupStatus"></div>
+                
+                <hr style="margin: 2rem 0; border: 1px solid #2a3f44;">
+                
+                <h3>🔗 Share Editing Mode</h3>
+                <p>Let others edit the wiki in your browser (they can't save to GitHub directly):</p>
+                <button id="generateShareLink" class="btn-primary">Generate Share Link</button>
+                <div id="shareStatus"></div>
+                <div class="form-group" id="shareLinkBox" style="display: none; margin-top: 1rem;">
+                    <label>Share this link with others:</label>
+                    <input type="text" id="shareLink" readonly placeholder="Share link will appear here">
+                    <button id="copyShareLink" class="btn-primary" style="margin-top: 0.5rem; width: 100%;">Copy Share Link</button>
+                </div>
             </div>
 
             <div class="admin-tabs">
@@ -203,5 +215,6 @@
     </div>
 
     <script src="js/admin.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>

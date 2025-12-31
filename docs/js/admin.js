@@ -5,9 +5,19 @@ let githubConfig = {
     username: null,
     repo: null
 };
+let isShareMode = false;
+let sharedData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeAdmin();
+    // Check if this is a share link
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get('share');
+    
+    if (shareId) {
+        loadSharedData(shareId);
+    } else {
+        initializeAdmin();
+    }
 });
 
 function initializeAdmin() {
@@ -34,6 +44,8 @@ function initializeAdmin() {
     // GitHub setup
     document.getElementById('saveGithubSetup').addEventListener('click', saveGithubConfig);
     document.getElementById('clearGithubSetup').addEventListener('click', clearGithubConfig);
+    document.getElementById('generateShareLink').addEventListener('click', generateShareLink);
+    document.getElementById('copyShareLink')?.addEventListener('click', copyShareLink);
 
     // Tab switching
     tabBtns.forEach(btn => {
@@ -388,4 +400,106 @@ function showStatus(elementId, type, message) {
     element.className = type;
     element.textContent = message;
     element.style.display = 'block';
+}
+
+// Share Link Functions
+function generateShareLink() {
+    try {
+        const exportData = {
+            site: adminData.site,
+            categories: adminData.categories,
+            items: adminData.items
+        };
+
+        // Create a unique ID based on timestamp
+        const shareId = 'share_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Compress and encode the data
+        const jsonString = JSON.stringify(exportData);
+        const compressed = btoa(jsonString); // Simple base64 encoding
+        
+        // Store in sessionStorage (expires when browser closes)
+        sessionStorage.setItem(shareId, compressed);
+        
+        // Generate the share link
+        const currentUrl = window.location.origin + window.location.pathname;
+        const shareLink = `${currentUrl}?share=${shareId}`;
+        
+        // Display the share link
+        document.getElementById('shareLink').value = shareLink;
+        document.getElementById('shareLinkBox').style.display = 'block';
+        
+        showStatus('shareStatus', 'success', `✅ Share link generated! Valid for this browser session.`);
+        
+    } catch (error) {
+        showStatus('shareStatus', 'error', `❌ Error generating share link: ${error.message}`);
+    }
+}
+
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    shareLink.select();
+    document.execCommand('copy');
+    
+    const btn = document.getElementById('copyShareLink');
+    const originalText = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    
+    setTimeout(() => {
+        btn.textContent = originalText;
+    }, 2000);
+}
+
+function loadSharedData(shareId) {
+    try {
+        const compressed = sessionStorage.getItem(shareId);
+        
+        if (!compressed) {
+            alert('❌ Share link expired or invalid. Share links are only valid for the current browser session.');
+            window.location.href = window.location.pathname;
+            return;
+        }
+        
+        const jsonString = atob(compressed);
+        const sharedData = JSON.parse(jsonString);
+        
+        adminData = sharedData;
+        isShareMode = true;
+        
+        initializeAdmin();
+        
+        // Show banner that this is shared mode
+        const banner = document.createElement('div');
+        banner.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ff9800;
+            color: white;
+            padding: 0.8rem;
+            text-align: center;
+            font-weight: 600;
+            z-index: 1000;
+            border-bottom: 3px solid #f57c00;
+        `;
+        banner.innerHTML = `
+            🔗 <strong>SHARE MODE:</strong> You're editing in shared mode. 
+            Changes won't be saved unless the original owner clicks "Save to GitHub".
+            <button onclick="this.parentElement.style.display='none'" style="float: right; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">×</button>
+        `;
+        document.body.insertBefore(banner, document.body.firstChild);
+        
+        // Disable GitHub save button in share mode
+        const saveBtn = document.getElementById('saveToGithub');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.title = 'Not available in share mode';
+            saveBtn.style.opacity = '0.5';
+        }
+        
+    } catch (error) {
+        alert('❌ Error loading shared data: ' + error.message);
+        window.location.href = window.location.pathname;
+    }
 }
