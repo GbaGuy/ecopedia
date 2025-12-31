@@ -1,5 +1,8 @@
+// Configuration - Set your Google Sheet ID here!
+const DEFAULT_SHEET_ID = 'YOUR_SHEET_ID_HERE'; // Replace with your actual Sheet ID
+
 // State
-let sheetId = localStorage.getItem('ecopediaSheetId');
+let sheetId = localStorage.getItem('ecopediaSheetId') || DEFAULT_SHEET_ID;
 let allItems = [];
 let categories = [];
 let currentFilter = 'all';
@@ -10,11 +13,12 @@ document.addEventListener('DOMContentLoaded', init);
 function init() {
     setupEventListeners();
     
-    if (!sheetId) {
-        showSetup();
-    } else {
+    // If DEFAULT_SHEET_ID is set, load data directly
+    if (sheetId && sheetId !== 'YOUR_SHEET_ID_HERE') {
         showMain();
         loadData();
+    } else {
+        showSetup();
     }
 }
 

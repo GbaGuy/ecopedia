@@ -42,40 +42,31 @@ ecopedia/
 
 ## 🛠️ Setup Instructions
 
-### 1. Enable GitHub Pages
+### Quick Setup (5 minutes)
 
-1. Go to your repository Settings
-2. Navigate to "Pages" section
-3. Set Source to: `main` branch, `/docs` folder
-4. Save
+1. **Create your Google Sheet**
+   - Go to [Google Sheets](https://sheets.google.com)
+   - Create a new sheet with 3 columns: **Category, Description, Image**
+   - Add your wiki data
+   - Share: "Anyone with link can view"
+   - Copy the Sheet ID from the URL
 
-Your site will be available at: `https://[your-username].github.io/ecopedia`
+2. **Configure the wiki**
+   - Open `docs/js/script.js`
+   - Find line 2: `const DEFAULT_SHEET_ID = 'YOUR_SHEET_ID_HERE';`
+   - Replace `YOUR_SHEET_ID_HERE` with your actual Sheet ID
+   - Save the file
 
-### 2. Local Testing (Optional)
+3. **Deploy**
+   ```bash
+   git add .
+   git commit -m "Configure Sheet ID"
+   git push origin main
+   ```
 
-To test locally, you'll need a simple HTTP server (due to CORS restrictions with local JSON files):
+4. **Done!** Your wiki is live at: `https://[your-username].github.io/ecopedia`
 
-```bash
-# Using Python 3
-cd docs
-python -m http.server 8000
-
-# Then visit http://localhost:8000 in your browser
-```
-
-Or use VS Code's Live Server extension.
-
-### 3. Deploy Changes
-
-After making any changes:
-
-```bash
-git add .
-git commit -m "Update content"
-git push origin main
-```
-
-GitHub Pages will automatically deploy your changes within 5 minutes.
+Visitors will see your content immediately - no setup required on their end!
 
 ## ✏️ Adding Content
 
