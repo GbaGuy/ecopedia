@@ -1,0 +1,57 @@
+{
+  "site": {
+    "title": "🌿 Ecopedia",
+    "subtitle": "The Ecoloco Wiki",
+    "description": "Explore creatures, plants, locations, and equipment in the world of Ecoloco"
+  },
+  "categories": [
+    {
+      "id": "creatures",
+      "name": "Creatures",
+      "description": "All creatures in Ecoloco",
+      "icon": "🦎"
+    },
+    {
+      "id": "plants",
+      "name": "Plants",
+      "description": "Flora of Ecoloco",
+      "icon": "🌱"
+    },
+    {
+      "id": "locations",
+      "name": "Locations",
+      "description": "Places to explore",
+      "icon": "🗺️"
+    },
+    {
+      "id": "equipment",
+      "name": "Equipment",
+      "description": "Tools and gear",
+      "icon": "⚙️"
+    }
+  ],
+  "items": [
+    {
+      "id": "item-001",
+      "name": "Verdant Dragon",
+      "category": "creatures",
+      "image": "img/creatures/verdant-dragon.jpg",
+      "rarity": "Rare",
+      "description": "A majestic dragon with emerald scales that dwells in ancient forests.",
+      "details": "The Verdant Dragon is known for its symbiotic relationship with forest ecosystems. These creatures help spread seeds and maintain healthy vegetation patterns.",
+      "traits": ["Flying", "Fire Breath", "Nature Aligned"],
+      "habitat": "Deep Forests"
+    },
+    {
+      "id": "item-002",
+      "name": "Crystalline Fern",
+      "category": "plants",
+      "image": "img/plants/crystalline-fern.jpg",
+      "rarity": "Uncommon",
+      "description": "A glowing fern with crystal-like fronds.",
+      "details": "Found only in caves with high mineral content. The crystals on its leaves emit a soft bioluminescence that guides travelers.",
+      "traits": ["Bioluminescent", "Rare Minerals"],
+      "habitat": "Underground Caverns"
+    }
+  ]
+}
