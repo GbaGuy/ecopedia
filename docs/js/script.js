@@ -8,13 +8,14 @@ let currentFilter = 'all';
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
+    setupEventListeners();
+    
     if (!sheetId) {
         showSetup();
     } else {
+        showMain();
         loadData();
     }
-    
-    setupEventListeners();
 }
 
 function setupEventListeners() {
