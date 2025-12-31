@@ -1,5 +1,5 @@
 // Configuration - Set your Google Sheet ID here!
-const DEFAULT_SHEET_ID = 'YOUR_SHEET_ID_HERE'; // Replace with your actual Sheet ID
+const DEFAULT_SHEET_ID = '1j8_yIbgDcms0zs7Sa_fC7yuwkraV0rgG7IUtVGJ7vDY';
 
 // State
 let sheetId = localStorage.getItem('ecopediaSheetId') || DEFAULT_SHEET_ID;
