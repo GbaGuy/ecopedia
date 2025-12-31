@@ -1,15 +1,5 @@
-// הגדרות
+// הגדרות - רק צריך את ה-Sheet ID!
 const SHEET_ID = '1j8_yIbgDcms0zs7Sa_fC7yuwkraV0rgG7IUtVGJ7vDY';
-
-// כאן תוסיף את כל הטאבים מהגוגל שיטס
-// כל טאב = קטגוריה אחת
-// למצוא GID: פתח את הטאב, ראה בURL את #gid=XXXXXX
-const TABS = [
-    { name: 'חפצים', gid: '0' }
-    // הוסף עוד טאבים כאן:
-    // { name: 'תושבים', gid: '123456' },
-    // { name: 'מקומות', gid: '789012' }
-];
 
 let allData = [];
 let currentCategory = 'all';
@@ -25,48 +15,69 @@ async function init() {
 async function loadData() {
     allData = [];
     
-    for (const tab of TABS) {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${tab.gid}`;
+    try {
+        // קבלת כל הטאבים מהשיטס אוטומטית
+        const sheetsUrl = `https://spreadsheets.google.com/feeds/worksheets/${SHEET_ID}/public/full?alt=json`;
+        const sheetsResponse = await fetch(sheetsUrl);
+        const sheetsData = await sheetsResponse.json();
         
-        try {
-            const response = await fetch(url);
-            const csv = await response.text();
-            const rows = parseCSV(csv);
+        const tabs = sheetsData.feed.entry.map(entry => {
+            const title = entry.title.$t;
+            const link = entry.link.find(l => l.rel === 'http://schemas.google.com/visualization/2008/visualizationApi');
+            const gidMatch = link ? link.href.match(/gid=(\d+)/) : null;
+            const gid = gidMatch ? gidMatch[1] : '0';
             
-            if (rows.length < 2) continue;
+            return { name: title, gid: gid };
+        });
+        
+        console.log('נמצאו טאבים:', tabs);
+        
+        // טעינת נתונים מכל טאב
+        for (const tab of tabs) {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${tab.gid}`;
             
-            const headers = rows[0];
-            
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (!row[0]) continue;
+            try {
+                const response = await fetch(url);
+                const csv = await response.text();
+                const rows = parseCSV(csv);
                 
-                const item = {
-                    category: tab.name,
-                    fields: {}
-                };
+                if (rows.length < 2) continue;
                 
-                headers.forEach((header, index) => {
-                    if (header && row[index]) {
-                        let value = row[index];
-                        
-                        // המרת לינק גוגל דרייב לתמונה
-                        if (header.includes('תמונה') || header.includes('image')) {
-                            const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                            if (match) {
-                                value = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                const headers = rows[0];
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row[0]) continue;
+                    
+                    const item = {
+                        category: tab.name,
+                        fields: {}
+                    };
+                    
+                    headers.forEach((header, index) => {
+                        if (header && row[index]) {
+                            let value = row[index];
+                            
+                            // המרת לינק גוגל דרייב לתמונה
+                            if (header.includes('תמונה') || header.includes('image')) {
+                                const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                                if (match) {
+                                    value = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                                }
                             }
+                            
+                            item.fields[header] = value;
                         }
-                        
-                        item.fields[header] = value;
-                    }
-                });
-                
-                allData.push(item);
+                    });
+                    
+                    allData.push(item);
+                }
+            } catch (error) {
+                console.error(`שגיאה בטעינת ${tab.name}:`, error);
             }
-        } catch (error) {
-            console.error(`שגיאה בטעינת ${tab.name}:`, error);
         }
+    } catch (error) {
+        console.error('שגיאה בטעינת הטאבים:', error);
     }
 }
 
