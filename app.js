@@ -87,14 +87,16 @@ async function fetchTablesAndRecords() {
 function organizeByCategories() {
     // Create a new structure: categories -> articles
     appState.categories = {};
+    appState.allArticles = []; // Keep track of all articles for search
     
     // Iterate through all tables and records
     Object.entries(appState.records).forEach(([tableName, records]) => {
         records.forEach((record) => {
             const fields = record.fields;
+            const fieldNames = Object.keys(fields);
             
-            // Get the first field name (should be the category)
-            const firstFieldName = Object.keys(fields)[0];
+            // Get the first field value (should be the category)
+            const firstFieldName = fieldNames[0];
             const categoryValue = fields[firstFieldName];
             
             if (!categoryValue) return;
@@ -107,16 +109,27 @@ function organizeByCategories() {
                 appState.categories[category] = [];
             }
             
-            // Add article to category
-            appState.categories[category].push({
+            // Create article object
+            const article = {
                 tableName,
                 record,
-                fields
+                fields,
+                fieldNames
+            };
+            
+            // Add article to category
+            appState.categories[category].push(article);
+            appState.allArticles.push({ ...article, category });
+            
+            console.log('📄 Article:', {
+                category,
+                title: fields[fieldNames[1]] || 'Untitled',
+                fields: fieldNames
             });
         });
     });
     
-    console.log('📚 Organized categories:', appState.categories);
+    console.log('📚 Organized categories:', Object.keys(appState.categories));
 }
 
 async function fetchTableRecords(tableId, tableName) {
@@ -232,37 +245,42 @@ function createArticleItem(articleData, categoryName, index) {
     item.href = '#';
 
     const fields = articleData.fields;
-    // Skip first field (category), use second field as title
-    const fieldNames = Object.keys(fields);
+    const fieldNames = articleData.fieldNames || Object.keys(fields);
+    
+    // Use second field as title (first is category)
     const title = fields[fieldNames[1]] || fields[fieldNames[0]] || `Article ${index + 1}`;
+    
+    // Use third field onwards as preview
     const preview = fieldNames.slice(2)
         .map(name => fields[name])
-        .find(v => typeof v === 'string') || 'No description';
+        .filter(v => typeof v === 'string')
+        .join(' | ')
+        .substring(0, 150) || 'No description';
 
     item.innerHTML = `
         <div class="article-item-title">${escapeHtml(String(title))}</div>
-        <div class="article-item-preview">${escapeHtml(String(preview).substring(0, 150))}</div>
+        <div class="article-item-preview">${escapeHtml(preview)}</div>
     `;
 
     item.addEventListener('click', (e) => {
         e.preventDefault();
-        showArticle(articleData.record, articleData.fields);
+        showArticle(articleData.record, articleData.fields, articleData.fieldNames);
     });
 
     return item;
 }
 
-function showArticle(record, fields) {
+function showArticle(record, fields, fieldNames = null) {
     appState.currentView = 'article';
-    appState.currentArticle = { record, fields };
+    appState.currentArticle = { record, fields, fieldNames };
     hideAllViews();
     document.getElementById('article-view').style.display = 'block';
 
-    const fieldNames = Object.keys(fields);
+    const fNames = fieldNames || Object.keys(fields);
     // First field is category, second is title
-    const title = fields[fieldNames[1]] || fields[fieldNames[0]] || 'Untitled Article';
-    const category = fields[fieldNames[0]] || appState.currentCategory;
-    const content = renderArticleContent(fields, 1); // Skip first field (category)
+    const title = fields[fNames[1]] || fields[fNames[0]] || 'Untitled Article';
+    const category = fields[fNames[0]] || appState.currentCategory;
+    const content = renderArticleContent(fields, fNames);
 
     document.getElementById('article-title').textContent = escapeHtml(String(title));
     document.getElementById('article-category').innerHTML = 
@@ -272,13 +290,13 @@ function showArticle(record, fields) {
     updateSidebarNav(appState.currentCategory);
 }
 
-function renderArticleContent(fields, skipFields = 0) {
+function renderArticleContent(fields, fieldNames = null) {
     let html = '';
-    const fieldNames = Object.keys(fields);
+    const fNames = fieldNames || Object.keys(fields);
     
-    fieldNames.forEach((fieldName, index) => {
-        // Skip the first N fields
-        if (index < skipFields + 1) return; // +1 because we always skip the first field (category/title)
+    // Skip first two fields (category and title), start from third
+    fNames.forEach((fieldName, index) => {
+        if (index < 2) return; // Skip category and title fields
 
         const fieldValue = fields[fieldName];
 
@@ -289,9 +307,7 @@ function renderArticleContent(fields, skipFields = 0) {
         html += `<section>`;
 
         // Add field name as section header
-        if (index > 1 || Object.entries(fields).length > 2) {
-            html += `<h2>${escapeHtml(fieldName)}</h2>`;
-        }
+        html += `<h2>${escapeHtml(fieldName)}</h2>`;
 
         // Render different field types
         if (typeof fieldValue === 'string') {
