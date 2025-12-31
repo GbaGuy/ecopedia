@@ -116,7 +116,7 @@ function buildCategoryMappings() {
 }
 
 function organizeByCategories() {
-    // Create a new structure: categories -> articles
+    // Create a new structure where each table becomes a "category"
     appState.categories = {};
     appState.allArticles = []; // Keep track of all articles for search
     
@@ -125,27 +125,17 @@ function organizeByCategories() {
         // Skip the categories table itself
         if (tableName === 'קטגוריות') return;
         
-        // Check if this table has a mapped category
-        const mappedCategory = appState.categoriesMappings[tableName];
+        // Each table is its own category
+        const category = tableName;
+        
+        // Initialize category if it doesn't exist
+        if (!appState.categories[category]) {
+            appState.categories[category] = [];
+        }
         
         records.forEach((record) => {
             const fields = record.fields;
             const fieldNames = Object.keys(fields);
-            
-            let category;
-            
-            if (mappedCategory) {
-                // This table is mapped to a specific category
-                category = mappedCategory;
-            } else {
-                // This table is its own category
-                category = tableName;
-            }
-            
-            // Initialize category if it doesn't exist
-            if (!appState.categories[category]) {
-                appState.categories[category] = [];
-            }
             
             // Create article object
             const article = {
@@ -155,20 +145,19 @@ function organizeByCategories() {
                 fieldNames
             };
             
-            // Add article to category
+            // Add article to category (table)
             appState.categories[category].push(article);
             appState.allArticles.push({ ...article, category });
             
-            console.log('📄 Article:', {
+            console.log('📄 Record:', {
                 tableName,
-                category,
                 title: fields[fieldNames[0]] || 'Untitled',
                 fields: fieldNames
             });
         });
     });
     
-    console.log('📚 Organized categories:', Object.keys(appState.categories));
+    console.log('📚 Organized tables:', Object.keys(appState.categories));
 }
 
 async function fetchTableRecords(tableId, tableName) {
@@ -227,11 +216,9 @@ function renderCategoriesView() {
     const categoriesGrid = document.getElementById('categories-grid');
     categoriesGrid.innerHTML = '';
 
-    // Show categories from the organized data
-    Object.entries(appState.categories).forEach(([categoryName, articles]) => {
-        // Get unique table names in this category
-        const tableNames = [...new Set(articles.map(a => a.tableName))];
-        const card = createCategoryCard(categoryName, tableNames.length);
+    // Show tables (now as categories) from the organized data
+    Object.entries(appState.categories).forEach(([tableName, records]) => {
+        const card = createCategoryCard(tableName, records.length);
         categoriesGrid.appendChild(card);
     });
 
@@ -244,12 +231,12 @@ function createCategoryCard(categoryName, articleCount) {
     card.href = '#';
     card.innerHTML = `
         <div class="category-card-title">${escapeHtml(categoryName)}</div>
-        <div class="category-card-count">${articleCount} articles</div>
+        <div class="category-card-count">${articleCount} record${articleCount !== 1 ? 's' : ''}</div>
     `;
     
     card.addEventListener('click', (e) => {
         e.preventDefault();
-        showCategoryArticles(categoryName);
+        showTablePage(categoryName, appState.categories[categoryName], categoryName);
     });
     
     return card;
@@ -364,7 +351,7 @@ function showArticle(record, fields, fieldNames = null) {
 
 function showTablePage(tableName, tableArticles, categoryName) {
     appState.currentView = 'article';
-    appState.currentCategory = categoryName;
+    appState.currentCategory = tableName; // Use table name as category
     hideAllViews();
     document.getElementById('article-view').style.display = 'block';
 
@@ -389,10 +376,10 @@ function showTablePage(tableName, tableArticles, categoryName) {
 
     document.getElementById('article-title').textContent = escapeHtml(tableName);
     document.getElementById('article-category').innerHTML = 
-        `<a href="#" onclick="showCategoryArticles('${escapeHtml(String(categoryName))}'); return false;">${escapeHtml(String(categoryName))}</a>`;
+        `<a href="#" onclick="renderCategoriesView(); return false;">← תחזור לעמוד הבית</a>`;
     document.getElementById('article-content').innerHTML = content;
 
-    updateSidebarNav(categoryName);
+    updateSidebarNav(tableName);
 }
 
 function renderArticleContent(fields, fieldNames = null) {
@@ -516,19 +503,19 @@ function updateSidebarNav(activeCategory = null) {
 
     nav.appendChild(homeLink);
 
-    // Add all categories
-    Object.keys(appState.categories).forEach(categoryName => {
+    // Add all tables (as categories)
+    Object.keys(appState.categories).forEach(tableName => {
         const link = document.createElement('a');
         link.className = 'category-link';
-        if (categoryName === activeCategory) {
+        if (tableName === activeCategory) {
             link.classList.add('active');
         }
         link.href = '#';
-        link.textContent = categoryName;
+        link.textContent = tableName;
 
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            showCategoryArticles(categoryName);
+            showTablePage(tableName, appState.categories[tableName], tableName);
         });
 
         nav.appendChild(link);
