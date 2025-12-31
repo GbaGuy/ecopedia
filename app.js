@@ -255,15 +255,30 @@ function renderArticleContent(fields) {
                 .replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
             html += `<p>${processedText}</p>`;
         } else if (Array.isArray(fieldValue)) {
-            html += '<ul>';
-            fieldValue.forEach(item => {
-                if (typeof item === 'string') {
-                    html += `<li>${escapeHtml(item)}</li>`;
-                } else if (item.url) {
-                    html += `<li><a href="${item.url}" target="_blank">${escapeHtml(item.filename || 'File')}</a></li>`;
-                }
-            });
-            html += '</ul>';
+            // Check if this is an attachments array (images)
+            if (fieldValue.length > 0 && fieldValue[0].url && fieldValue[0].filename) {
+                // This is an attachments field - display images
+                fieldValue.forEach(attachment => {
+                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(attachment.filename);
+                    if (isImage) {
+                        html += `<img src="${attachment.url}" alt="${escapeHtml(attachment.filename)}" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 4px;">`;
+                    } else {
+                        // For non-image files, show as link
+                        html += `<p><a href="${attachment.url}" target="_blank" class="wiki-link">📎 ${escapeHtml(attachment.filename)}</a></p>`;
+                    }
+                });
+            } else {
+                // Regular array - show as list
+                html += '<ul>';
+                fieldValue.forEach(item => {
+                    if (typeof item === 'string') {
+                        html += `<li>${escapeHtml(item)}</li>`;
+                    } else if (item.url) {
+                        html += `<li><a href="${item.url}" target="_blank">${escapeHtml(item.filename || 'File')}</a></li>`;
+                    }
+                });
+                html += '</ul>';
+            }
         } else if (typeof fieldValue === 'object') {
             html += `<p>${escapeHtml(JSON.stringify(fieldValue, null, 2))}</p>`;
         } else {
