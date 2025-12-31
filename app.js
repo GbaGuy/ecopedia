@@ -258,13 +258,20 @@ function renderArticleContent(fields) {
             // Check if this is an attachments array (images)
             if (fieldValue.length > 0 && fieldValue[0].url) {
                 // This is an attachments field
+                const isImageField = fieldName.toLowerCase().includes('תמונה') || 
+                                   fieldName.toLowerCase().includes('image') ||
+                                   fieldName.toLowerCase().includes('תמונ');
+                
                 fieldValue.forEach(attachment => {
                     if (!attachment.url) return;
                     
                     const filename = attachment.filename || '';
                     // Better detection for images
                     const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename) || 
-                                   (attachment.type && attachment.type.includes('image'));
+                                   (attachment.type && attachment.type.includes('image')) ||
+                                   isImageField;
+                    
+                    console.log('Attachment:', { filename, isImage, fieldName, type: attachment.type });
                     
                     if (isImage) {
                         html += `<figure style="margin: 1rem 0;">
