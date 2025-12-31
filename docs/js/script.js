@@ -1,175 +1,290 @@
+// State
+let sheetId = localStorage.getItem('ecopediaSheetId');
 let allItems = [];
-let currentCategory = null;
+let categories = [];
+let currentFilter = 'all';
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadContent();
-    setupEventListeners();
-    displayAllItems();
-});
+// Initialize
+document.addEventListener('DOMContentLoaded', init);
 
-// Load content from JSON
-async function loadContent() {
-    try {
-        const response = await fetch('data/content.json');
-        const data = await response.json();
-        allItems = data.items;
-        renderCategories(data.categories);
-        updateSiteTitle(data.site);
-    } catch (error) {
-        console.error('Error loading content:', error);
+function init() {
+    if (!sheetId) {
+        showSetup();
+    } else {
+        loadData();
     }
+    
+    setupEventListeners();
 }
 
-// Update site title
-function updateSiteTitle(site) {
-    document.title = site.title;
-    const logoTitle = document.querySelector('.logo h1');
-    logoTitle.textContent = site.title;
-}
-
-// Render categories in navigation and sidebar
-function renderCategories(categories) {
-    const navContainer = document.getElementById('categoryNav');
-    const sidebarContainer = document.getElementById('categoryList');
-
-    navContainer.innerHTML = '';
-    sidebarContainer.innerHTML = '';
-
-    categories.forEach(category => {
-        // Navigation link
-        const navItem = document.createElement('a');
-        navItem.textContent = `${category.icon} ${category.name}`;
-        navItem.addEventListener('click', () => filterByCategory(category.id));
-        navContainer.appendChild(navItem);
-
-        // Sidebar link
-        const sidebarItem = document.createElement('li');
-        sidebarItem.textContent = `${category.icon} ${category.name}`;
-        sidebarItem.dataset.categoryId = category.id;
-        sidebarItem.addEventListener('click', () => filterByCategory(category.id));
-        sidebarContainer.appendChild(sidebarItem);
-    });
-
-    // Add "All" category
-    const allNavItem = document.createElement('a');
-    allNavItem.textContent = '📚 All';
-    allNavItem.addEventListener('click', () => displayAllItems());
-    navContainer.appendChild(allNavItem);
-
-    const allSidebarItem = document.createElement('li');
-    allSidebarItem.textContent = '📚 All';
-    allSidebarItem.addEventListener('click', () => displayAllItems());
-    sidebarContainer.insertBefore(allSidebarItem, sidebarContainer.firstChild);
-}
-
-// Setup event listeners
 function setupEventListeners() {
-    const searchBox = document.getElementById('searchBox');
-    searchBox.addEventListener('input', (e) => searchItems(e.target.value));
-
-    const closeButton = document.querySelector('.close');
-    const modal = document.getElementById('detailModal');
-    closeButton.addEventListener('click', () => modal.style.display = 'none');
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
+    // Setup
+    document.getElementById('saveSheetId')?.addEventListener('click', saveSheetIdFromSetup);
+    
+    // Settings
+    document.getElementById('settingsBtn')?.addEventListener('click', openSettings);
+    document.getElementById('updateSheetId')?.addEventListener('click', updateSheetId);
+    document.getElementById('clearSheetId')?.addEventListener('click', clearSheetId);
+    
+    // Modal close
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', closeModals);
     });
-}
-
-// Display all items
-function displayAllItems() {
-    currentCategory = null;
-    updateActiveSidebar();
-    renderGrid(allItems);
-}
-
-// Filter by category
-function filterByCategory(categoryId) {
-    currentCategory = categoryId;
-    updateActiveSidebar();
-    const filtered = allItems.filter(item => item.category === categoryId);
-    renderGrid(filtered);
-}
-
-// Search items
-function searchItems(query) {
-    const results = allItems.filter(item => 
-        item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.description.toLowerCase().includes(query.toLowerCase())
-    );
-    renderGrid(results);
-}
-
-// Update active sidebar item
-function updateActiveSidebar() {
-    document.querySelectorAll('#categoryList li').forEach(li => {
-        li.classList.remove('active');
-        if (!currentCategory && li.textContent.includes('All')) {
-            li.classList.add('active');
-        } else if (li.dataset.categoryId === currentCategory) {
-            li.classList.add('active');
-        }
+    
+    // Click outside modal
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModals();
+        });
     });
+    
+    // Reload
+    document.getElementById('reloadData')?.addEventListener('click', loadData);
 }
 
-// Render grid of items
-function renderGrid(items) {
-    const grid = document.getElementById('itemGrid');
-    grid.innerHTML = '';
+function showSetup() {
+    document.getElementById('setupSection').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+}
 
-    if (items.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No items found.</p>';
+function showMain() {
+    document.getElementById('setupSection').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+}
+
+function saveSheetIdFromSetup() {
+    const input = document.getElementById('sheetIdInput').value.trim();
+    if (!input) {
+        showStatus('setupStatus', 'Please enter a Sheet ID', 'error');
         return;
     }
+    
+    sheetId = input;
+    localStorage.setItem('ecopediaSheetId', sheetId);
+    showStatus('setupStatus', 'Loading data...', 'info');
+    
+    setTimeout(() => {
+        loadData();
+    }, 500);
+}
 
-    items.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <img src="${item.image}" alt="${item.name}" class="card-image">
-            <div class="card-content">
-                <span class="card-category">${item.category}</span>
-                <h3 class="card-title">${item.name}</h3>
-                <p class="card-description">${item.description}</p>
-                <p class="card-rarity">${item.rarity}</p>
-            </div>
-        `;
-        card.addEventListener('click', () => showDetail(item));
-        grid.appendChild(card);
+function updateSheetId() {
+    const input = document.getElementById('settingsSheetId').value.trim();
+    if (!input) {
+        showStatus('settingsStatus', 'Please enter a Sheet ID', 'error');
+        return;
+    }
+    
+    sheetId = input;
+    localStorage.setItem('ecopediaSheetId', sheetId);
+    showStatus('settingsStatus', 'Reloading data...', 'info');
+    
+    setTimeout(() => {
+        closeModals();
+        loadData();
+    }, 500);
+}
+
+function clearSheetId() {
+    if (confirm('Clear settings and start over?')) {
+        localStorage.removeItem('ecopediaSheetId');
+        sheetId = null;
+        allItems = [];
+        categories = [];
+        closeModals();
+        showSetup();
+    }
+}
+
+function openSettings() {
+    document.getElementById('settingsSheetId').value = sheetId || '';
+    document.getElementById('settingsModal').classList.add('active');
+}
+
+function closeModals() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.classList.remove('active');
     });
 }
 
-// Show detail modal
-function showDetail(item) {
-    const modal = document.getElementById('detailModal');
-    const detailContent = document.getElementById('detailContent');
+function showStatus(elementId, message, type) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.className = type;
+        el.style.display = 'block';
+        
+        if (type !== 'info') {
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 4000);
+        }
+    }
+}
 
-    let traitsHtml = '';
-    if (item.traits) {
-        traitsHtml = `
-            <div class="detail-section">
-                <h3>Traits</h3>
-                ${item.traits.map(trait => `<span class="detail-badge">${trait}</span>`).join('')}
+// Load data from Google Sheets
+async function loadData() {
+    if (!sheetId) return;
+    
+    try {
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+        const response = await fetch(csvUrl);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load sheet. Make sure it\'s shared publicly.');
+        }
+        
+        const csvText = await response.text();
+        parseData(csvText);
+        
+        if (allItems.length === 0) {
+            showNoData();
+        } else {
+            renderCategories();
+            renderItems();
+            showMain();
+        }
+        
+    } catch (error) {
+        console.error('Load error:', error);
+        alert('Error loading data: ' + error.message);
+    }
+}
+
+function parseData(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) {
+        allItems = [];
+        return;
+    }
+    
+    allItems = [];
+    categories = [];
+    
+    // Skip header (line 0)
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        
+        if (values.length >= 2 && values[0].trim()) {
+            const category = values[0].trim();
+            const description = values[1].trim();
+            const image = values.length >= 3 ? values[2].trim() : 'img/default.jpg';
+            
+            const item = {
+                id: `item-${i}`,
+                category: category,
+                description: description,
+                image: image,
+                title: description.substring(0, 60) + (description.length > 60 ? '...' : '')
+            };
+            
+            allItems.push(item);
+            
+            // Collect unique categories
+            if (!categories.includes(category)) {
+                categories.push(category);
+            }
+        }
+    }
+}
+
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let insideQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
+
+function renderCategories() {
+    const container = document.getElementById('categoriesFilter');
+    container.innerHTML = '';
+    
+    // All button
+    const allBtn = document.createElement('button');
+    allBtn.className = 'category-btn active';
+    allBtn.textContent = 'All';
+    allBtn.onclick = () => filterByCategory('all');
+    container.appendChild(allBtn);
+    
+    // Category buttons
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'category-btn';
+        btn.textContent = cat;
+        btn.onclick = () => filterByCategory(cat);
+        container.appendChild(btn);
+    });
+}
+
+function filterByCategory(cat) {
+    currentFilter = cat;
+    
+    // Update button states
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if ((cat === 'all' && btn.textContent === 'All') || btn.textContent === cat) {
+            btn.classList.add('active');
+        }
+    });
+    
+    renderItems();
+}
+
+function renderItems() {
+    const container = document.getElementById('itemsGrid');
+    container.innerHTML = '';
+    
+    const filtered = currentFilter === 'all' 
+        ? allItems 
+        : allItems.filter(item => item.category === currentFilter);
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<p style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #8ab4b8;">No items in this category</p>';
+        return;
+    }
+    
+    filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.onclick = () => showItemDetail(item);
+        
+        card.innerHTML = `
+            <img src="${item.image}" alt="${item.title}" onerror="this.src='img/default.jpg'">
+            <div class="item-card-content">
+                <div class="item-category">${item.category}</div>
+                <h3>${item.title}</h3>
+                <p>${item.description}</p>
             </div>
         `;
-    }
+        
+        container.appendChild(card);
+    });
+}
 
-    detailContent.innerHTML = `
-        <img src="${item.image}" alt="${item.name}" class="detail-image">
-        <h2 class="detail-title">${item.name}</h2>
-        <div class="detail-meta">
-            <span class="detail-badge">${item.category}</span>
-            <span class="detail-badge">${item.rarity}</span>
-        </div>
-        <div class="detail-section">
-            <p>${item.details}</p>
-        </div>
-        ${traitsHtml}
-        <div class="detail-section">
-            <h3>Habitat</h3>
-            <p>${item.habitat}</p>
-        </div>
-    `;
+function showItemDetail(item) {
+    document.getElementById('modalImage').src = item.image;
+    document.getElementById('modalTitle').textContent = item.description.substring(0, 100);
+    document.getElementById('modalCategory').textContent = item.category;
+    document.getElementById('modalDescription').textContent = item.description;
+    document.getElementById('itemModal').classList.add('active');
+}
 
-    modal.style.display = 'block';
+function showNoData() {
+    document.getElementById('noDataMessage').style.display = 'block';
+    document.getElementById('itemsGrid').style.display = 'none';
+    document.getElementById('categoriesFilter').style.display = 'none';
+    showMain();
 }

@@ -1,229 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ecopedia - Wiki Fandom</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>🌿 Ecopedia</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <header class="header">
-        <nav class="navbar">
-            <div class="logo">
-                <h1>🌿 Ecopedia</h1>
-            </div>
-            <ul class="nav-links" id="categoryNav">
-                <!-- Categories populated from JSON -->
-            </ul>
-            <input type="text" id="searchBox" placeholder="Search...">
-        </nav>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>🌿 Ecopedia</h1>
+            <p>Wiki powered by Google Sheets</p>
+        </div>
     </header>
 
-    <main>
-        <div id="heroSection" class="hero">
-            <h2>Welcome to Ecopedia</h2>
-            <p>Explore the world of Ecoloco</p>
-        </div>
-
+    <!-- Setup Section -->
+    <div id="setupSection" class="setup-section" style="display: none;">
         <div class="container">
-            <aside class="sidebar">
-                <h3>Categories</h3>
-                <ul id="categoryList">
-                    <!-- Populated from JSON -->
-                </ul>
-            </aside>
-
-            <section id="contentArea" class="content">
-                <div id="itemGrid" class="grid">
-                    <!-- Items populated from JSON -->
-                </div>
-            </section>
-        </div>
-
-        <div id="detailModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <div id="detailContent">
-                    <!-- Item details populated here -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 Ecopedia | Powered by GitHub Pages</p>
-        <button id="adminBtn" class="admin-btn" title="Admin Panel">⚙️</button>
-    </footer>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="admin-panel">
-        <div class="admin-container">
-            <div class="admin-header">
-                <h2>🔧 Ecopedia Admin Panel</h2>
-                <button class="admin-close">&times;</button>
-            </div>
-
-            <!-- Google Sheets Setup -->
-            <div id="googleSheetsSetup" class="github-setup">
-                <h3>📊 Google Sheets Setup</h3>
-                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
-                    Connect your Google Sheet to sync data automatically.
-                </p>
+            <div class="setup-card">
+                <h2>📊 Setup Google Sheets</h2>
+                <p>Connect your Google Sheet to display your wiki:</p>
                 
-                <div style="background: rgba(0, 214, 214, 0.1); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; border: 1px solid var(--secondary-color);">
-                    <h4 style="margin: 0 0 0.5rem 0; color: var(--secondary-color);">Quick Setup:</h4>
-                    <ol style="margin: 0; padding-left: 1.5rem; font-size: 0.9rem; line-height: 1.6;">
-                        <li>Create a <a href="https://sheets.google.com" target="_blank" style="color: var(--secondary-color);">Google Sheet</a></li>
-                        <li>Add 3 columns: <strong>Category, Description, Image</strong></li>
-                        <li>Share it: "Anyone with link can edit"</li>
-                        <li>Copy Sheet ID from URL (the long string between /d/ and /edit)</li>
-                        <li>Paste below and save</li>
-                    </ol>
-                </div>
-                
+                <ol style="text-align: right; margin: 1.5rem 0;">
+                    <li>Create a <a href="https://sheets.google.com" target="_blank">Google Sheet</a></li>
+                    <li>Add 3 columns: <strong>Category, Description, Image</strong></li>
+                    <li>Share: "Anyone with link can view"</li>
+                    <li>Copy Sheet ID from URL</li>
+                </ol>
+
                 <div class="form-group">
-                    <label>Google Sheet ID *</label>
-                    <input type="text" id="googleSheetId" placeholder="1BxiMVs0XRA5nFMoons..." style="font-family: monospace;">
-                    <small style="display: block; margin-top: 0.5rem; color: var(--text-secondary);">
-                        From URL: docs.google.com/spreadsheets/d/<strong style="color: var(--secondary-color);">COPY_THIS_PART</strong>/edit
-                    </small>
+                    <label>Google Sheet ID</label>
+                    <input type="text" id="sheetIdInput" placeholder="1BxiMVs0XRA5nFMoons...">
+                    <small>From URL: docs.google.com/spreadsheets/d/<strong>THIS_PART</strong>/edit</small>
                 </div>
-                <div class="form-group">
-                    <label>Sheet Name</label>
-                    <input type="text" id="googleSheetName" placeholder="Sheet1" value="Sheet1">
-                    <small style="display: block; margin-top: 0.5rem; color: var(--text-secondary);">
-                        Usually "Sheet1" - check the tab name at the bottom of your Google Sheet
-                    </small>
-                </div>
-                <button id="saveGoogleSheetsSetup" class="btn-primary" style="width: 100%; padding: 1rem;">💾 Save Settings</button>
-                <button id="clearGoogleSheetsSetup" class="btn-secondary" style="width: 100%; padding: 1rem; margin-top: 0.5rem;">🗑️ Clear Settings</button>
-                <div id="googleSheetsStatus"></div>
-            </div>
 
-            <div class="admin-tabs">
-                <button class="tab-btn active" data-tab="items">Add/Edit Items</button>
-                <button class="tab-btn" data-tab="categories">Add Categories</button>
-                <button class="tab-btn" data-tab="export">📊 Google Sheets</button>
-            </div>
-
-            <!-- Items Tab -->
-            <div id="items" class="tab-content active">
-                <h3>Add New Item</h3>
-                <form id="addItemForm">
-                    <div class="form-group">
-                        <label>Item Name *</label>
-                        <input type="text" id="itemName" required placeholder="e.g., Blue Dragon">
-                    </div>
-                    <div class="form-group">
-                        <label>Category *</label>
-                        <select id="itemCategory" required>
-                            <option value="">Select category...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Image URL (img/category/filename.jpg) *</label>
-                        <input type="text" id="itemImage" required placeholder="img/creatures/blue-dragon.jpg">
-                    </div>
-                    <div class="form-group">
-                        <label>Rarity *</label>
-                        <select id="itemRarity" required>
-                            <option value="">Select rarity...</option>
-                            <option value="Common">Common</option>
-                            <option value="Uncommon">Uncommon</option>
-                            <option value="Rare">Rare</option>
-                            <option value="Epic">Epic</option>
-                            <option value="Legendary">Legendary</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Short Description *</label>
-                        <input type="text" id="itemDescription" required placeholder="One sentence description">
-                    </div>
-                    <div class="form-group">
-                        <label>Full Details *</label>
-                        <textarea id="itemDetails" required placeholder="Longer description..." rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Traits (comma-separated)</label>
-                        <input type="text" id="itemTraits" placeholder="e.g., Flying, Fire Breath, Fast">
-                    </div>
-                    <div class="form-group">
-                        <label>Habitat *</label>
-                        <input type="text" id="itemHabitat" required placeholder="Where it lives">
-                    </div>
-                    <button type="submit" class="btn-primary">Add Item</button>
-                </form>
-
-                <h3 style="margin-top: 2rem;">Existing Items</h3>
-                <div id="itemsList" class="items-list"></div>
-            </div>
-
-            <!-- Categories Tab -->
-            <div id="categories" class="tab-content">
-                <h3>Add New Category</h3>
-                <form id="addCategoryForm">
-                    <div class="form-group">
-                        <label>Category Name *</label>
-                        <input type="text" id="categoryName" required placeholder="e.g., Magic Items">
-                    </div>
-                    <div class="form-group">
-                        <label>Category ID (lowercase, no spaces) *</label>
-                        <input type="text" id="categoryId" required placeholder="e.g., magic-items">
-                    </div>
-                    <div class="form-group">
-                        <label>Description *</label>
-                        <input type="text" id="categoryDescription" required placeholder="Brief description">
-                    </div>
-                    <div class="form-group">
-                        <label>Icon/Emoji *</label>
-                        <input type="text" id="categoryIcon" required placeholder="✨" maxlength="2">
-                    </div>
-                    <button type="submit" class="btn-primary">Add Category</button>
-                </form>
-
-                <h3 style="margin-top: 2rem;">Existing Categories</h3>
-                <div id="categoriesList" class="categories-list"></div>
-            </div>
-
-            <!-- Export Tab -->
-            <div id="export" class="tab-content">
-                <h3>� Google Sheets Sync</h3>
-                <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    Import your wiki data from Google Sheets with one click!
-                </p>
-                
-                <button id="syncFromSheet" class="btn-primary" style="width: 100%; padding: 1.2rem; margin-bottom: 1rem; font-size: 1.1rem; font-weight: bold;">
-                    📥 Sync from Google Sheet
-                </button>
-                <div id="googleSheetsStatus" style="margin-bottom: 2rem;"></div>
-                
-                <div style="background: rgba(0, 214, 214, 0.1); padding: 1rem; border-radius: 6px; margin-bottom: 2rem; border: 1px solid var(--secondary-color);">
-                    <p style="margin: 0; font-size: 0.9rem;">
-                        <strong>📝 Need help?</strong><br>
-                        1. Create a Google Sheet with 3 columns: Category, Description, Image<br>
-                        2. Share it publicly<br>
-                        3. Enter the Sheet ID in the setup section above<br>
-                        4. Click "Sync from Google Sheet"
-                    </p>
-                </div>
-                
-                <hr style="margin: 2rem 0; border: 1px solid #2a3f44;">
-                
-                <h3 style="margin-top: 2rem;">📋 JSON Backup</h3>
-                <p style="color: var(--text-secondary);">Download your data as JSON file:</p>
-                <button id="downloadJson" class="btn-primary" style="width: 100%; margin-bottom: 1rem; padding: 1rem;">⬇️ Download JSON</button>
-                
-                <p style="margin-top: 1.5rem; color: var(--text-secondary);">Or copy manually:</p>
-                <textarea id="jsonExport" readonly style="width: 100%; height: 300px; padding: 1rem; background: var(--bg-secondary); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace; font-size: 0.85rem;"></textarea>
-                <button id="copyJsonBtn" class="btn-primary" style="margin-top: 1rem;">Copy to Clipboard</button>
+                <button id="saveSheetId" class="btn-primary">💾 Save & Load Data</button>
+                <div id="setupStatus"></div>
             </div>
         </div>
     </div>
 
-    <script src="js/admin.js"></script>
+    <!-- Main Content -->
+    <main id="mainContent" style="display: none;">
+        <div class="container">
+            <!-- Categories Filter -->
+            <div id="categoriesFilter" class="categories-filter"></div>
+
+            <!-- Items Grid -->
+            <div id="itemsGrid" class="items-grid"></div>
+
+            <!-- No Data -->
+            <div id="noDataMessage" style="display: none; text-align: center; padding: 3rem;">
+                <h2>📭 No data found</h2>
+                <p>Make sure your Google Sheet has data and is shared publicly.</p>
+                <button id="reloadData" class="btn-primary">🔄 Reload</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Item Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <img id="modalImage" src="" alt="">
+            <h2 id="modalTitle"></h2>
+            <div class="modal-category" id="modalCategory"></div>
+            <p id="modalDescription"></p>
+        </div>
+    </div>
+
+    <!-- Settings Button -->
+    <button id="settingsBtn" class="settings-btn">⚙️</button>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>⚙️ Settings</h2>
+            
+            <div class="form-group">
+                <label>Google Sheet ID</label>
+                <input type="text" id="settingsSheetId" placeholder="1BxiMVs0XRA5nFMoons...">
+            </div>
+
+            <button id="updateSheetId" class="btn-primary">💾 Update & Reload</button>
+            <button id="clearSheetId" class="btn-danger">🗑️ Clear</button>
+            <div id="settingsStatus"></div>
+        </div>
+    </div>
+
     <script src="js/script.js"></script>
 </body>
 </html>
