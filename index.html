@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecopedia - Dynamic Knowledge Base</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <header class="wiki-header">
+            <div class="header-container">
+                <div class="logo-section">
+                    <h1 class="wiki-title">Ecopedia</h1>
+                    <p class="wiki-subtitle">The Free Encyclopedia</p>
+                </div>
+                <div class="search-section">
+                    <input type="text" id="searchInput" class="search-box" placeholder="Search...">
+                    <button id="searchBtn" class="search-btn">Go</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <div class="navigation">
+                    <h3>Categories</h3>
+                    <nav id="categories-nav" class="categories-list">
+                        <p class="loading">Loading categories...</p>
+                    </nav>
+                </div>
+                <div class="sidebar-box">
+                    <h4>About Ecopedia</h4>
+                    <p>A dynamic encyclopedia powered by Airtable, displaying information in Wikipedia style.</p>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Categories View -->
+                <div id="categories-view" class="view-container">
+                    <h2>Categories</h2>
+                    <div id="categories-grid" class="categories-grid">
+                        <p class="loading">Loading categories...</p>
+                    </div>
+                </div>
+
+                <!-- Articles View -->
+                <div id="articles-view" class="view-container" style="display: none;">
+                    <h2 id="category-title">Category Articles</h2>
+                    <div id="articles-list" class="articles-list">
+                        <p class="loading">Loading articles...</p>
+                    </div>
+                </div>
+
+                <!-- Article Detail View -->
+                <div id="article-view" class="view-container" style="display: none;">
+                    <article class="wiki-article">
+                        <h1 id="article-title">Article Title</h1>
+                        <div class="article-metadata">
+                            <span id="article-category" class="breadcrumb"></span>
+                        </div>
+                        <div id="article-content" class="article-content">
+                            <!-- Content will be populated here -->
+                        </div>
+                        <div class="article-footer">
+                            <p>
+                                <a href="#" id="backBtn" class="wiki-link">← Back</a>
+                            </p>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Search Results View -->
+                <div id="search-view" class="view-container" style="display: none;">
+                    <h2>Search Results</h2>
+                    <div id="search-results" class="search-results">
+                        <p class="loading">Searching...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="wiki-footer">
+            <p>Ecopedia - Powered by Airtable | <a href="https://airtable.com" target="_blank">Built on Airtable</a></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
