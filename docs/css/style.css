@@ -469,6 +469,89 @@ footer p {
     box-shadow: 0 6px 16px rgba(0, 214, 214, 0.5);
 }
 
+.github-setup {
+    background: #002a32;
+    border: 2px solid #00d6d6;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+}
+
+.github-setup h3 {
+    color: #00d6d6;
+    margin-bottom: 1rem;
+}
+
+.github-setup ol {
+    color: #c5c5c5;
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.github-setup ol li {
+    margin-bottom: 0.5rem;
+}
+
+.github-setup a {
+    color: #00d6d6;
+    text-decoration: none;
+}
+
+.github-setup a:hover {
+    text-decoration: underline;
+}
+
+.github-setup small {
+    display: block;
+    color: #8a8a8a;
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+}
+
+#setupStatus, #saveStatus {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 6px;
+    display: none;
+}
+
+#setupStatus.success, #saveStatus.success {
+    display: block;
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4caf50;
+    color: #81c784;
+}
+
+#setupStatus.error, #saveStatus.error {
+    display: block;
+    background: rgba(211, 47, 47, 0.2);
+    border: 1px solid #d32f2f;
+    color: #ef5350;
+}
+
+.btn-secondary {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    margin-left: 1rem;
+}
+
+.btn-secondary:hover {
+    background: #b71c1c;
+    transform: translateY(-2px);
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #2a3f44;
+}
+
 .admin-panel {
     display: none;
     position: fixed;

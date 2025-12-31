@@ -66,10 +66,38 @@
                 <button class="admin-close">&times;</button>
             </div>
 
+            <!-- GitHub Setup -->
+            <div id="githubSetup" class="github-setup">
+                <h3>🔐 GitHub Setup (One Time)</h3>
+                <p>To save directly to GitHub, you need a Personal Access Token:</p>
+                <ol>
+                    <li>Go to: <a href="https://github.com/settings/tokens" target="_blank">GitHub Token Settings</a></li>
+                    <li>Click "Generate new token (classic)"</li>
+                    <li>Select scope: <code>repo</code></li>
+                    <li>Copy the token and paste below</li>
+                </ol>
+                <div class="form-group">
+                    <label>GitHub Personal Access Token</label>
+                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+                    <small>Token is only stored locally in your browser, never sent to servers.</small>
+                </div>
+                <div class="form-group">
+                    <label>GitHub Username</label>
+                    <input type="text" id="githubUsername" placeholder="e.g., GbaGuy">
+                </div>
+                <div class="form-group">
+                    <label>Repository Name</label>
+                    <input type="text" id="githubRepo" placeholder="e.g., ecopedia">
+                </div>
+                <button id="saveGithubSetup" class="btn-primary">Save GitHub Settings</button>
+                <button id="clearGithubSetup" class="btn-secondary">Clear Settings</button>
+                <div id="setupStatus"></div>
+            </div>
+
             <div class="admin-tabs">
                 <button class="tab-btn active" data-tab="items">Add/Edit Items</button>
                 <button class="tab-btn" data-tab="categories">Add Categories</button>
-                <button class="tab-btn" data-tab="export">Export JSON</button>
+                <button class="tab-btn" data-tab="export">Export & Save</button>
             </div>
 
             <!-- Items Tab -->
@@ -154,16 +182,22 @@
             <!-- Export Tab -->
             <div id="export" class="tab-content">
                 <h3>Export Updated JSON</h3>
-                <p>Copy this JSON and replace the contents of <code>docs/data/content.json</code> on GitHub:</p>
+                <p>Save your changes directly to GitHub:</p>
+                
+                <div class="form-group">
+                    <label>Commit Message</label>
+                    <input type="text" id="commitMessage" placeholder="e.g., Add new creatures and update descriptions">
+                </div>
+                
+                <button id="saveToGithub" class="btn-primary" style="width: 100%; padding: 1rem; margin-bottom: 1rem;">💾 Save to GitHub</button>
+                <div id="saveStatus"></div>
+                
+                <hr style="margin: 2rem 0; border: 1px solid #2a3f44;">
+                
+                <h3 style="margin-top: 2rem;">📋 JSON Preview</h3>
+                <p>Or copy this JSON manually:</p>
                 <textarea id="jsonExport" readonly style="width: 100%; height: 400px; padding: 1rem; background: var(--bg-secondary); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace; font-size: 0.85rem;"></textarea>
                 <button id="copyJsonBtn" class="btn-primary" style="margin-top: 1rem;">Copy to Clipboard</button>
-                <p style="font-size: 0.85rem; color: var(--text-dark); margin-top: 1rem;">
-                    After copying:<br>
-                    1. Go to GitHub repository<br>
-                    2. Edit <code>docs/data/content.json</code><br>
-                    3. Paste the JSON<br>
-                    4. Commit changes
-                </p>
             </div>
         </div>
     </div>

@@ -1,5 +1,10 @@
 // Admin Panel functionality
 let adminData = { categories: [], items: [] };
+let githubConfig = {
+    token: null,
+    username: null,
+    repo: null
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeAdmin();
@@ -10,6 +15,9 @@ function initializeAdmin() {
     const adminPanel = document.getElementById('adminPanel');
     const adminClose = document.querySelector('.admin-close');
     const tabBtns = document.querySelectorAll('.tab-btn');
+
+    // Load GitHub config from localStorage
+    loadGithubConfig();
 
     // Load data from content.json
     loadAdminData();
@@ -23,6 +31,10 @@ function initializeAdmin() {
         adminPanel.classList.remove('active');
     });
 
+    // GitHub setup
+    document.getElementById('saveGithubSetup').addEventListener('click', saveGithubConfig);
+    document.getElementById('clearGithubSetup').addEventListener('click', clearGithubConfig);
+
     // Tab switching
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -35,6 +47,7 @@ function initializeAdmin() {
     document.getElementById('addItemForm').addEventListener('submit', addNewItem);
     document.getElementById('addCategoryForm').addEventListener('submit', addNewCategory);
     document.getElementById('copyJsonBtn').addEventListener('click', copyJsonToClipboard);
+    document.getElementById('saveToGithub').addEventListener('click', saveToGithub);
 
     // Close panel when clicking outside
     adminPanel.addEventListener('click', (e) => {
@@ -256,4 +269,123 @@ function copyJsonToClipboard() {
     setTimeout(() => {
         btn.textContent = originalText;
     }, 2000);
+}
+
+// GitHub Configuration Functions
+function loadGithubConfig() {
+    const saved = localStorage.getItem('ecopediaGithubConfig');
+    if (saved) {
+        githubConfig = JSON.parse(saved);
+        document.getElementById('githubToken').value = githubConfig.token || '';
+        document.getElementById('githubUsername').value = githubConfig.username || '';
+        document.getElementById('githubRepo').value = githubConfig.repo || '';
+    }
+}
+
+function saveGithubConfig() {
+    const token = document.getElementById('githubToken').value;
+    const username = document.getElementById('githubUsername').value;
+    const repo = document.getElementById('githubRepo').value;
+
+    if (!token || !username || !repo) {
+        showStatus('setupStatus', 'error', '❌ Please fill in all fields');
+        return;
+    }
+
+    githubConfig = { token, username, repo };
+    localStorage.setItem('ecopediaGithubConfig', JSON.stringify(githubConfig));
+    showStatus('setupStatus', 'success', '✅ GitHub settings saved! You can now save directly to GitHub.');
+}
+
+function clearGithubConfig() {
+    if (confirm('Are you sure? You will need to re-enter your token.')) {
+        localStorage.removeItem('ecopediaGithubConfig');
+        githubConfig = { token: null, username: null, repo: null };
+        document.getElementById('githubToken').value = '';
+        document.getElementById('githubUsername').value = '';
+        document.getElementById('githubRepo').value = '';
+        showStatus('setupStatus', 'success', '✅ GitHub settings cleared.');
+    }
+}
+
+async function saveToGithub() {
+    if (!githubConfig.token || !githubConfig.username || !githubConfig.repo) {
+        alert('❌ Please set up GitHub credentials first (in the GitHub Setup section)');
+        return;
+    }
+
+    const commitMessage = document.getElementById('commitMessage').value || 'Update Ecopedia content';
+    const statusDiv = document.getElementById('saveStatus');
+    
+    try {
+        showStatus('saveStatus', 'error', '⏳ Saving to GitHub...');
+
+        const exportData = {
+            site: adminData.site,
+            categories: adminData.categories,
+            items: adminData.items
+        };
+
+        const jsonContent = JSON.stringify(exportData, null, 2);
+        const encodedContent = btoa(unescape(encodeURIComponent(jsonContent)));
+
+        // Get current file SHA (needed for GitHub API)
+        const getShaResponse = await fetch(
+            `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/docs/data/content.json`,
+            {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+
+        if (!getShaResponse.ok && getShaResponse.status !== 404) {
+            throw new Error(`GitHub API error: ${getShaResponse.statusText}`);
+        }
+
+        let sha = null;
+        if (getShaResponse.ok) {
+            const fileData = await getShaResponse.json();
+            sha = fileData.sha;
+        }
+
+        // Update or create the file
+        const updateResponse = await fetch(
+            `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/docs/data/content.json`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: commitMessage,
+                    content: encodedContent,
+                    sha: sha,
+                    branch: 'main'
+                })
+            }
+        );
+
+        if (!updateResponse.ok) {
+            const error = await updateResponse.json();
+            throw new Error(error.message || `GitHub API error: ${updateResponse.statusText}`);
+        }
+
+        showStatus('saveStatus', 'success', '✅ Successfully saved to GitHub! Your changes will be live in 1-2 minutes.');
+        document.getElementById('commitMessage').value = '';
+
+    } catch (error) {
+        console.error('Error saving to GitHub:', error);
+        showStatus('saveStatus', 'error', `❌ Error: ${error.message}`);
+    }
+}
+
+function showStatus(elementId, type, message) {
+    const element = document.getElementById(elementId);
+    element.className = type;
+    element.textContent = message;
+    element.style.display = 'block';
 }
